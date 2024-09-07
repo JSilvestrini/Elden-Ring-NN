@@ -3,7 +3,7 @@ other_tools/
 Cheat-Engine-Lua.txt
 getValue.py
 todo.md
-scripts/backups/
+backups/
 scripts/logs/
-scripts/animation_files/leonine_misbegotten/
+animation_files/leonine_misbegotten/
 scripts/animation_data.py
