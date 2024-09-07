@@ -1,6 +1,6 @@
 {
     "animation_number": 2003008,
-    "min_time_to_finish": 1000000000,
-    "max_time_to_finish": -1,
+    "min_time_to_finish": 0.4100017547607422,
+    "max_time_to_finish": 3.5857746601104736,
     "animation_name": "Attack - Charged Overhead"
 }

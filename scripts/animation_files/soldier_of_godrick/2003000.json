@@ -1,6 +1,6 @@
 {
     "animation_number": 2003000,
-    "min_time_to_finish": 1000000000,
-    "max_time_to_finish": -1,
+    "min_time_to_finish": 0.032000064849853516,
+    "max_time_to_finish": 3.4802892208099365,
     "animation_name": "Attack - Swing Combo 1"
 }

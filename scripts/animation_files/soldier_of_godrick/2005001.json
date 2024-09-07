@@ -1,6 +1,6 @@
 {
     "animation_number": 2005001,
-    "min_time_to_finish": 1000000000,
-    "max_time_to_finish": -1,
+    "min_time_to_finish": 2.4021799564361572,
+    "max_time_to_finish": 4.82645845413208,
     "animation_name": "Movement - Turn Right 90*"
 }

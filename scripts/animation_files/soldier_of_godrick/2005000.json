@@ -1,6 +1,6 @@
 {
     "animation_number": 2005000,
-    "min_time_to_finish": 1000000000,
-    "max_time_to_finish": -1,
+    "min_time_to_finish": 0.9240000247955322,
+    "max_time_to_finish": 3.243884563446045,
     "animation_name": "Movement - Turn Left 90*"
 }
