@@ -8,6 +8,11 @@
 
 ## Dependencies
 
+-   streamlit
+-   json
+-   pymem
+-   ...
+
 ## How to Use
 
 ## Documentation

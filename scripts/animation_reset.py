@@ -3,7 +3,7 @@ from json import decoder
 import os
 import sys
 
-def format_file(filename : str):
+def format_file(filename : str) -> None:
     """
     This function creates the proper format of a file
     It is only called if an exception is raised inside of
@@ -34,7 +34,7 @@ def format_file(filename : str):
         json.dump(data, file, indent=4)
 
 
-def change_times(filename : str):
+def change_times(filename : str) -> None:
     """
     This function resets the values of the given file
     File is expected to be in json format
