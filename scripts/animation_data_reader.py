@@ -6,8 +6,7 @@ import os
 import sys
 
 """
-This file is temporary for accessing data from the game, this will later be placed into a class of its own
-
+This file is temporary for accessing data from the game, this will later be merged into a logging script and game_accessor.py, along with others
 """
 
 
