@@ -1,32 +1,8 @@
-# Elden-Ring-NN
+# Hexinton Cheat Table Should Go in This Directory
 
-## Table of Contents
+Please place the cheat table in this directory, it will create files which will then be accessed through the Python script, some pointer locations are too difficult for pymem to find, so this is the solution that I am currently opting for. A better fix would be to use a pipe to send information back and forth from lua to python, maybe that can be done later.
 
--   [**Dependencies**](#dependencies)
--   [**How to Use**](#how-to-use)
--   [**Documentation**](#documentation)
-
-## Dependencies
-
-#### Python
-
--   streamlit
--   json
--   pymem
--   ...
-
-#### External
-
--   Cheat Engine <- Link This
--   Hexinton All-in-One Cheat Table <- Link This
--   Elden Ring <- Link This
--   Practice Mod <- Link This
-
-## How to Use
-
-#### Cheat Engine
-
-Inside of the Hexinton Table Add the following at line 290 inside of the Enable script (The top level script in the cheat table), directly after the `if #failedScans > 0 then` block of code:
+Please add the following to line 290 directly after the `if #failedScans > 0 then` block of code:
 
 ```lua
 python_file = io.open("WorldChrManPointer.txt", 'w')
@@ -80,13 +56,3 @@ end
 ```
 
 The above code was found on this forum [post](https://www.cheatengine.org/forum/viewtopic.php?t=618933&sid=ea8d85619a9513450cc63fbe2f1a3443). So credit to that user for the code. This creates a timer that will check to see if there is a locked on target and if the target changes. This is so that target can easily be grabbed each time that the player dies, since this is expected to be a lot. Unlike the WorldChrMan, this value is subject to change very often.
-
-## Documentation
-
-Most of the files included in this repo have documentation based on Google's format, with information about the function, the arguments taken, the return type and the expected information returned, as well as potential raises (or in some cases exceptions that will be caught and suppressed).
-
-#### animation_reset.py
-
-#### game_access.py
-
-#### memory_access.py
