@@ -26,15 +26,7 @@
 
 #### Cheat Engine
 
-Inside of the Hexinton Table Add the following at line 290 inside of the Enable script (The top level script in the cheat table), directly after the `if #failedScans > 0 then` block of code:
-
-```lua
-python_file = io.open("WorldChrManPointer.txt", 'w')
-python_file:write(tostring(getAddress("WorldChrMan")))
-python_file:close()
-```
-
-Under the following section do the following:
+Inside of the Hexinton Table Add the following under the section shown below:
 
 ```
 Enable
@@ -50,11 +42,29 @@ if not scriptTimers then scriptTimers = {} end
 
 local function onTimer(timer)
 
-python_file = io.open("TargetPointer.txt", 'w')
-num = readQword'[LastLockOnTarget]'
-python_file:write(tostring(num))
-python_file:close()
+  player_dead_file = io.open('PlayerDead.txt', 'r')
 
+  if player_dead_file ~= nil then
+    io.close(player_dead_file)
+    pausegame_t=AOBScanModuleUnique("eldenring.exe","80 BB 28 01 00 00 00 0F 84","+X")
+
+    python_file = io.open("TargetPointer.txt", 'w')
+    num = readQword'[LastLockOnTarget]'
+    python_file:write(tostring(num))
+    python_file:close()
+
+    python_file2 = io.open("WorldChrManPointer.txt", 'w')
+    num2 = getAddress("WorldChrMan")
+    python_file2:write(tostring(readQword'num2'))
+    python_file2:close()
+
+    python_file3 = io.open("PausePointer.txt", 'w')
+    python_file3:write(tostring(pausegame_t))
+    python_file3:close()
+
+    ready_file = io.open("DataWritten.txt", 'w')
+    ready_file:close()
+  end
 end
 
 [ENABLE]
@@ -67,7 +77,7 @@ if t then
 else
   scriptTimers[id] = createTimer()
   t = scriptTimers[id]
-  t.Interval = 10
+  t.Interval = 1000
   t.OnTimer = onTimer
 end
 

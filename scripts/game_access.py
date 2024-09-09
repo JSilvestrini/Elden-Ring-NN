@@ -1,3 +1,4 @@
+import time
 import os.path
 import memory_access
 
@@ -25,11 +26,17 @@ class GameAccessor:
         self.get_memory_values()
 
     def get_memory_values(self):
-        # Get Pause Pointer
-        self.findGamePhysics()
 
-        if os.path.isfile('place_cheat_table_here/WorldChrManPointer.txt'):
-            self.__worldPointer = memory_access.read_cheat_engine_file('WorldChrManPointer.txt')
+        with open('place_cheat_table_here/PlayerDead.txt', 'w') as file:
+            file.write('1')
+
+        while not os.path.isfile('place_cheat_table_here/DataWritten.txt'):
+            time.sleep(1.0)
+            print("Waiting")
+
+        self.findGamePhysics()
+        self.findWorldPointer()
+        self.findTargetedEnemy()
 
         self.__localPlayerPointer = memory_access.read_memory('eldenring.exe', (self.__worldPointer + 0x10ef8))
 
@@ -49,11 +56,24 @@ class GameAccessor:
         eighteen = memory_access.read_memory('eldenring.exe', onenine + 0x18)
         self.__playerAnimationPointer = eighteen + 0x40
 
-        if os.path.isfile('place_cheat_table_here/TargetPointer.txt'):
-            self.__targetedEnemyPointer = memory_access.read_cheat_engine_file('TargetPointer.txt')
+        # boss
+        # animation
+        a = memory_access.read_memory('eldenring.exe', self.__targetedEnemyPointer + 0x190)
+        b = memory_access.read_memory('eldenring.exe', a + 0x18)
+        self.__bossAnimationPointer = b + 0x40
 
-        # boss stuff
-        
+        # health
+        c = memory_access.read_memory('eldenring.exe', a)
+        self.__bossHealthPointer = c + 0x138
+
+        # max health
+        self.__bossMaxHealthPointer = c + 0x13c
+
+        os.remove('place_cheat_table_here/DataWritten.txt')
+        os.remove('place_cheat_table_here/TargetPointer.txt')
+        os.remove('place_cheat_table_here/WorldChrManPointer.txt')
+        os.remove('place_cheat_table_here/PausePointer.txt')
+        os.remove('place_cheat_table_here/PlayerDead.txt')
 
     def bossAnimationAccess(self):
         return memory_access.read_memory_i('eldenring.exe', self.__bossAnimationPointer)
@@ -88,6 +108,12 @@ class GameAccessor:
     def findGamePhysics(self):
         self.__gamePhysicsPointer = memory_access.read_cheat_engine_file('PausePointer.txt')
 
+    def findTargetedEnemy(self):
+        self.__targetedEnemyPointer = memory_access.read_cheat_engine_file('TargetPointer.txt')
+
+    def findWorldPointer(self):
+        self.__worldPointer = memory_access.read_cheat_engine_file('WorldChrManPointer.txt')
+
     def PauseGame(self):
         while (self.__gamePhysicsPointer == None):
             self.findGamePhysics()
@@ -102,7 +128,5 @@ class GameAccessor:
 if __name__ == "__main__":
     # try and find the world pointer and get to player on start
     game = GameAccessor()
-    game.PauseGame()
-    #print(game.PlayerHealthAccess())
-    #print(game.PlayerStaminaAccess())
-    #print(game.PlayerFPAccess())
+    print(game.bossAnimationAccess())
+    print(game.bossMaxHealthAccess())
