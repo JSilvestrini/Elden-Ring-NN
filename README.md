@@ -49,7 +49,7 @@ local function onTimer(timer)
     pausegame_t=AOBScanModuleUnique("eldenring.exe","80 BB 28 01 00 00 00 0F 84","+X")
 
     python_file = io.open("TargetPointer.txt", 'w')
-    num = readQword'[LastLockOnTarget]'
+    num = readQword'LastLockOnTarget'
     python_file:write(tostring(num))
     python_file:close()
 
@@ -89,7 +89,13 @@ if t then
 end
 ```
 
-The above code was found on this forum [post](https://www.cheatengine.org/forum/viewtopic.php?t=618933&sid=ea8d85619a9513450cc63fbe2f1a3443). So credit to that user for the code. This creates a timer that will check to see if there is a locked on target and if the target changes. This is so that target can easily be grabbed each time that the player dies, since this is expected to be a lot. Unlike the WorldChrMan, this value is subject to change very often.
+The above code was found on this forum [post](https://www.cheatengine.org/forum/viewtopic.php?t=618933&sid=ea8d85619a9513450cc63fbe2f1a3443) and edited to fit the needs of this project. So credit to that user for the code. This creates a timer that will check to see if there is a locked on target and if the target changes. This is so that target can easily be grabbed each time that the player dies, since this is expected to be a lot.
+
+For anyone editing the code above, the interval is in milliseconds, and the code you want to change is within the function block called `onTimer`.
+
+More discussion of the cheat table is located in the readme that is in the following directory: scripts/place_cheat_table_here/README.md.
+
+#### Elden Ring Initial Setup
 
 ## Documentation
 

@@ -25,7 +25,7 @@ local function onTimer(timer)
     pausegame_t=AOBScanModuleUnique("eldenring.exe","80 BB 28 01 00 00 00 0F 84","+X")
 
     python_file = io.open("TargetPointer.txt", 'w')
-    num = readQword'[LastLockOnTarget]'
+    num = readQword'LastLockOnTarget'
     python_file:write(tostring(num))
     python_file:close()
 
