@@ -65,5 +65,11 @@ def find_pattern_alt(_process, _pattern):
     a = pymem.pattern.pattern_scan_all(pm.process_handle, _pattern, return_multiple=True)
     return a
 
+def read_cheat_engine_file(_filename):
+    ret_val : int
+    with open('place_cheat_table_here/' + _filename, 'r') as file:
+        ret_val = int(file.readline())
+    return ret_val
+
 if __name__ == "__main__":
     ...

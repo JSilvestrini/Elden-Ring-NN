@@ -1,6 +1,5 @@
 anim_exports/
 other_tools/
-Cheat-Engine-Lua.txt
 getValue.py
 todo.md
 backups/
@@ -8,5 +7,6 @@ scripts/logs/
 scripts/place_cheat_table_here/eldenring.CT
 scripts/place_cheat_table_here/TargetPointer.txt
 scripts/place_cheat_table_here/WorldChrManPointer.txt
+scripts/place_cheat_table_here/PausePointer.txt
 animation_files/leonine_misbegotten/
 scripts/animation_data.py
