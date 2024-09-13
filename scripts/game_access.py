@@ -3,8 +3,10 @@ import os.path
 import memory_access
 
 # TODO: write google function strings
-# TODO: Create individual functions for the setters
-# TODO: A reset function
+# TODO: Check Raises from memory_access.py
+# TODO: Check all return types
+# TODO: Error handling
+# TODO: Update cheat table and check for offsets again
 
 class GameAccessor:
     def __init__(self):
@@ -29,7 +31,7 @@ class GameAccessor:
 
         self.get_memory_values()
 
-    def get_memory_values(self):
+    def get_memory_values(self) -> None:
 
         with open('place_cheat_table_here/PlayerDead.txt', 'w') as file:
             file.write('1')
@@ -48,7 +50,7 @@ class GameAccessor:
         os.remove('place_cheat_table_here/PausePointer.txt')
         os.remove('place_cheat_table_here/PlayerDead.txt')
 
-    def set_player_information(self):
+    def set_player_information(self) -> None:
         self.__localPlayerPointer = memory_access.read_memory('eldenring.exe', (self.__worldPointer + 0x10ef8))
 
         # player stats
@@ -72,12 +74,12 @@ class GameAccessor:
         # position + rotation
         # TODO
 
-    def set_world_information(self):
+    def set_world_information(self) -> None:
         self.find_game_physics()
         self.find_world_pointer()
         self.find_targeted_enemy()
 
-    def set_boss_information(self):
+    def set_boss_information(self) -> None:
         # animations
         offset1 = memory_access.read_memory('eldenring.exe', self.__targetedEnemyPointer + 0x190)
         offset2 = memory_access.read_memory('eldenring.exe', offset1 + 0x18)
@@ -91,48 +93,48 @@ class GameAccessor:
         # position + rotation
         # TODO
 
-    def get_boss_animation(self):
+    def get_boss_animation(self) -> int:
         return memory_access.read_memory_i('eldenring.exe', self.__bossAnimationPointer)
 
-    def get_boss_health(self):
+    def get_boss_health(self) -> int:
         return memory_access.read_memory_i('eldenring.exe', self.__bossHealthPointer)
 
-    def get_boss_max_health(self):
+    def get_boss_max_health(self) -> int:
         return memory_access.read_memory_i('eldenring.exe', self.__bossMaxHealthPointer)
 
-    def get_player_animation(self):
+    def get_player_animation(self) -> int:
         return memory_access.read_memory_i('eldenring.exe', self.__playerAnimationPointer)
 
-    def get_player_health(self):
+    def get_player_health(self) -> int:
         return memory_access.read_memory_i('eldenring.exe', self.__playerHealthPointer)
 
-    def get_player_stamina(self):
+    def get_player_stamina(self) -> int:
         return memory_access.read_memory_i('eldenring.exe', self.__playerStaminaPointer)
 
-    def get_player_fp(self):
+    def get_player_fp(self) -> int:
         return memory_access.read_memory_i('eldenring.exe', self.__playerFPPointer)
 
-    def get_player_max_health(self):
+    def get_player_max_health(self) -> int:
         return memory_access.read_memory_i('eldenring.exe', self.__playerMaxHealthPointer)
 
-    def get_player_max_stamina(self):
+    def get_player_max_stamina(self) -> int:
         return memory_access.read_memory_i('eldenring.exe', self.__playerMaxStaminaPointer)
 
-    def get_player_max_fp(self):
+    def get_player_max_fp(self) -> int:
         return memory_access.read_memory_i('eldenring.exe', self.__playerMaxFPPointer)
 
-    def find_game_physics(self):
+    def find_game_physics(self) -> None:
         self.__gamePhysicsPointer = memory_access.read_cheat_engine_file('PausePointer.txt')
 
-    def find_targeted_enemy(self):
+    def find_targeted_enemy(self) -> None:
         self.__targetedEnemyPointer = memory_access.read_cheat_engine_file('TargetPointer.txt')
 
-    def find_world_pointer(self):
+    def find_world_pointer(self) -> None:
         self.__worldPointer = memory_access.read_cheat_engine_file('WorldChrManPointer.txt')
 
-    def pause_game(self):
-        while (self.__gamePhysicsPointer == None):
-            self.findGamePhysics()
+    def pause_game(self) -> None:
+        if self.__gamePhysicsPointer == None:
+            return
 
         if self.__isPaused:
             memory_access.write_byte('eldenring.exe', self.__gamePhysicsPointer + 0x6, b'\x00')
