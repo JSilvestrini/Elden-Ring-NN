@@ -2,6 +2,10 @@ import time
 import os.path
 import memory_access
 
+# TODO: write google function strings
+# TODO: Create individual functions for the setters
+# TODO: A reset function
+
 class GameAccessor:
     def __init__(self):
         self.__isPaused = False
@@ -34,40 +38,9 @@ class GameAccessor:
             time.sleep(1.0)
             print("Waiting")
 
-        self.findGamePhysics()
-        self.findWorldPointer()
-        self.findTargetedEnemy()
-
-        self.__localPlayerPointer = memory_access.read_memory('eldenring.exe', (self.__worldPointer + 0x10ef8))
-
-        zeroXten = memory_access.read_memory('eldenring.exe', self.__localPlayerPointer)
-        oneninety = memory_access.read_memory('eldenring.exe', zeroXten + 0x190)
-        zero = memory_access.read_memory('eldenring.exe', oneninety)
-        self.__playerHealthPointer = zero + 0x138
-        self.__playerMaxHealthPointer = zero + 0x13c
-        self.__playerFPPointer = zero + 0x148
-        self.__playerMaxFPPointer = zero + 0x14c
-        self.__playerStaminaPointer = zero + 0x154
-        self.__playerMaxStaminaPointer = zero + 0x158
-
-        fiveeight = memory_access.read_memory('eldenring.exe', zeroXten + 0x58)
-        ten = memory_access.read_memory('eldenring.exe', fiveeight + 0x10)
-        onenine = memory_access.read_memory('eldenring.exe', ten + 0x190)
-        eighteen = memory_access.read_memory('eldenring.exe', onenine + 0x18)
-        self.__playerAnimationPointer = eighteen + 0x40
-
-        # boss
-        # animation
-        a = memory_access.read_memory('eldenring.exe', self.__targetedEnemyPointer + 0x190)
-        b = memory_access.read_memory('eldenring.exe', a + 0x18)
-        self.__bossAnimationPointer = b + 0x40
-
-        # health
-        c = memory_access.read_memory('eldenring.exe', a)
-        self.__bossHealthPointer = c + 0x138
-
-        # max health
-        self.__bossMaxHealthPointer = c + 0x13c
+        self.set_world_information()
+        self.set_player_information()
+        self.set_boss_information()
 
         os.remove('place_cheat_table_here/DataWritten.txt')
         os.remove('place_cheat_table_here/TargetPointer.txt')
@@ -75,46 +48,89 @@ class GameAccessor:
         os.remove('place_cheat_table_here/PausePointer.txt')
         os.remove('place_cheat_table_here/PlayerDead.txt')
 
-    def bossAnimationAccess(self):
+    def set_player_information(self):
+        self.__localPlayerPointer = memory_access.read_memory('eldenring.exe', (self.__worldPointer + 0x10ef8))
+
+        # player stats
+        offset1 = memory_access.read_memory('eldenring.exe', self.__localPlayerPointer)
+        offset2 = memory_access.read_memory('eldenring.exe', offset1 + 0x190)
+        player = memory_access.read_memory('eldenring.exe', offset2)
+        self.__playerHealthPointer = player + 0x138
+        self.__playerMaxHealthPointer = player + 0x13c
+        self.__playerFPPointer = player + 0x148
+        self.__playerMaxFPPointer = player + 0x14c
+        self.__playerStaminaPointer = player + 0x154
+        self.__playerMaxStaminaPointer = player + 0x158
+
+        # animations
+        offset3 = memory_access.read_memory('eldenring.exe', offset1 + 0x58)
+        offset4 = memory_access.read_memory('eldenring.exe', offset3 + 0x10)
+        offset5 = memory_access.read_memory('eldenring.exe', offset4 + 0x190)
+        offset6 = memory_access.read_memory('eldenring.exe', offset5 + 0x18)
+        self.__playerAnimationPointer = offset6 + 0x40
+
+        # position + rotation
+        # TODO
+
+    def set_world_information(self):
+        self.find_game_physics()
+        self.find_world_pointer()
+        self.find_targeted_enemy()
+
+    def set_boss_information(self):
+        # animations
+        offset1 = memory_access.read_memory('eldenring.exe', self.__targetedEnemyPointer + 0x190)
+        offset2 = memory_access.read_memory('eldenring.exe', offset1 + 0x18)
+        self.__bossAnimationPointer = offset2 + 0x40
+
+        # stats
+        boss = memory_access.read_memory('eldenring.exe', offset1)
+        self.__bossHealthPointer = boss + 0x138
+        self.__bossMaxHealthPointer = boss + 0x13c
+
+        # position + rotation
+        # TODO
+
+    def get_boss_animation(self):
         return memory_access.read_memory_i('eldenring.exe', self.__bossAnimationPointer)
 
-    def bossHealthAccess(self):
+    def get_boss_health(self):
         return memory_access.read_memory_i('eldenring.exe', self.__bossHealthPointer)
 
-    def bossMaxHealthAccess(self):
+    def get_boss_max_health(self):
         return memory_access.read_memory_i('eldenring.exe', self.__bossMaxHealthPointer)
 
-    def playerAnimationAccess(self):
+    def get_player_animation(self):
         return memory_access.read_memory_i('eldenring.exe', self.__playerAnimationPointer)
 
-    def playerHealthAccess(self):
+    def get_player_health(self):
         return memory_access.read_memory_i('eldenring.exe', self.__playerHealthPointer)
 
-    def playerStaminaAccess(self):
+    def get_player_stamina(self):
         return memory_access.read_memory_i('eldenring.exe', self.__playerStaminaPointer)
 
-    def playerFPAccess(self):
+    def get_player_fp(self):
         return memory_access.read_memory_i('eldenring.exe', self.__playerFPPointer)
 
-    def playerMaxHealthAccess(self):
+    def get_player_max_health(self):
         return memory_access.read_memory_i('eldenring.exe', self.__playerMaxHealthPointer)
 
-    def playerMaxStaminaAccess(self):
+    def get_player_max_stamina(self):
         return memory_access.read_memory_i('eldenring.exe', self.__playerMaxStaminaPointer)
 
-    def playerMaxFPAccess(self):
+    def get_player_max_fp(self):
         return memory_access.read_memory_i('eldenring.exe', self.__playerMaxFPPointer)
 
-    def findGamePhysics(self):
+    def find_game_physics(self):
         self.__gamePhysicsPointer = memory_access.read_cheat_engine_file('PausePointer.txt')
 
-    def findTargetedEnemy(self):
+    def find_targeted_enemy(self):
         self.__targetedEnemyPointer = memory_access.read_cheat_engine_file('TargetPointer.txt')
 
-    def findWorldPointer(self):
+    def find_world_pointer(self):
         self.__worldPointer = memory_access.read_cheat_engine_file('WorldChrManPointer.txt')
 
-    def PauseGame(self):
+    def pause_game(self):
         while (self.__gamePhysicsPointer == None):
             self.findGamePhysics()
 
@@ -128,5 +144,4 @@ class GameAccessor:
 if __name__ == "__main__":
     # try and find the world pointer and get to player on start
     game = GameAccessor()
-    print(game.bossAnimationAccess())
-    print(game.bossMaxHealthAccess())
+    print(game.get_player_health())

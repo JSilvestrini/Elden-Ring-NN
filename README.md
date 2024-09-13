@@ -26,7 +26,7 @@
 
 #### Cheat Engine
 
-Inside of the Hexinton Table Add the following under the section shown below:
+Place the Hexinton table inside of `scripts/place_cheat_table_here/` and inside of the Hexinton Table Add the following under the section shown below:
 
 ```
 Enable
@@ -93,16 +93,28 @@ The above code was found on this forum [post](https://www.cheatengine.org/forum/
 
 For anyone editing the code above, the interval is in milliseconds, and the code you want to change is within the function block called `onTimer`.
 
-More discussion of the cheat table is located in the readme that is in the following directory: scripts/place_cheat_table_here/README.md.
+More discussion of the cheat table is located in the readme that is in the following directory: scripts/place_cheat_table_here/README.md and there will be a separate lua file that contains the code as well.
 
 #### Elden Ring Initial Setup
+
+https://www.nexusmods.com/eldenring/mods/5645?tab=description
 
 ## Documentation
 
 Most of the files included in this repo have documentation based on Google's format, with information about the function, the arguments taken, the return type and the expected information returned, as well as potential raises (or in some cases exceptions that will be caught and suppressed).
 
+#### agent.py
+
 #### animation_reset.py
+
+#### er_environment.py
 
 #### game_access.py
 
+#### logger.py
+
 #### memory_access.py
+
+#### model.py
+
+#### webview.py
