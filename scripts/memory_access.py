@@ -7,7 +7,6 @@ import pymem.pattern
 # TODO: What Kind of Errors from pymem?
 # TODO: Clean File
 # TODO: Type hinting, some might return None?
-# TODO: Check if file exists before opening using os.path
 
 def read_memory(_process, _address) -> int:
     pm = pymem.Pymem(_process)
@@ -65,8 +64,9 @@ def find_pattern_alt(_process, _pattern) -> int:
 
 def read_cheat_engine_file(_filename) -> int:
     ret_val : int
-    with open('place_cheat_table_here/' + _filename, 'r') as file:
-        ret_val = int(file.readline())
+    if os.path.isfile('place_cheat_table_here/' + _filename, 'r'):
+        with open('place_cheat_table_here/' + _filename, 'r') as file:
+            ret_val = int(file.readline())
     return ret_val
 
 if __name__ == "__main__":

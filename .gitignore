@@ -10,3 +10,4 @@ scripts/place_cheat_table_here/WorldChrManPointer.txt
 scripts/place_cheat_table_here/PausePointer.txt
 animation_files/leonine_misbegotten/
 scripts/animation_data.py
+animation_files/animation_reset.py
