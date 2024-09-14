@@ -3,8 +3,19 @@
 ## Table of Contents
 
 -   [**Dependencies**](#dependencies)
+    -   [**Python**](#python)
+    -   [**External**](#external)
 -   [**How to Use**](#how-to-use)
+    -   [**Cheat Engine**](#cheat-engine)
+    -   [**Elden Ring**](#elden-ring-initial-setup)
 -   [**Documentation**](#documentation)
+    -   [**er_agent.py**](#er_agentpy)
+    -   [**er_environment.py**](#er_environmentpy)
+    -   [**er_model.py**](#er_modelpy)
+    -   [**game_access.py**](#game_accesspy)
+    -   [**logger.py**](#loggerpy)
+    -   [**memory_access.py**](#memory_accesspy)
+    -   [**webview.py**](#webviewpy)
 
 ## Dependencies
 
@@ -13,6 +24,7 @@
 -   streamlit
 -   json
 -   pymem
+-   dxcam
 -   ...
 
 #### External
@@ -101,20 +113,18 @@ https://www.nexusmods.com/eldenring/mods/5645?tab=description
 
 ## Documentation
 
-Most of the files included in this repo have documentation based on Google's format, with information about the function, the arguments taken, the return type and the expected information returned, as well as potential raises (or in some cases exceptions that will be caught and suppressed).
+Most of the files included in this repo have documentation with information about the function, the arguments taken, the return type and maybe error and exception information.
 
-#### agent.py
-
-#### animation_reset.py
+#### er_agent.py
 
 #### er_environment.py
+
+#### er_model.py
 
 #### game_access.py
 
 #### logger.py
 
 #### memory_access.py
-
-#### model.py
 
 #### webview.py

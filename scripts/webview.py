@@ -1,7 +1,6 @@
 import streamlit as st
-import animation_reset
-import animation_data_reader as animation_reader
 
+# TODO: Make logging and visual tools in logger.py file
 
 if __name__ == "__main__":
     ...
