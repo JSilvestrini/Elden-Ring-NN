@@ -3,7 +3,7 @@ import os.path
 import memory_access
 
 # TODO: Write google function strings
-# TODO: Check Raises from memory_access.py
+# TODO: Perform Assertions and Raises
 # TODO: Check all return types
 # TODO: Error handling
 
@@ -36,6 +36,15 @@ class GameAccessor:
         self.get_memory_values()
 
     def get_memory_values(self) -> None:
+        """
+        Communicates with Cheat Engine and acts as an init function for finding essential pointers.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
 
         with open('place_cheat_table_here/PlayerDead.txt', 'w') as file:
             file.write('1')
@@ -55,6 +64,15 @@ class GameAccessor:
         os.remove('place_cheat_table_here/PlayerDead.txt')
 
     def set_player_information(self) -> None:
+        """
+        Locates all essential player pointers
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         self.__local_player_pointer = memory_access.read_memory('eldenring.exe', (self.__world_pointer + 0x10ef8))
 
         # player stats
@@ -79,11 +97,29 @@ class GameAccessor:
         # TODO
 
     def set_world_information(self) -> None:
+        """
+        Locates all essential world pointers.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         self.find_game_physics()
         self.find_world_pointer()
         self.find_targeted_enemy()
 
     def set_boss_information(self) -> None:
+        """
+        Locates all essential targeted enemy pointers.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         # animations
         offset1 = memory_access.read_memory('eldenring.exe', self.__targeted_enemy_pointer + 0x190)
         offset2 = memory_access.read_memory('eldenring.exe', offset1 + 0x18)
@@ -98,45 +134,171 @@ class GameAccessor:
         # TODO
 
     def get_boss_animation(self) -> int:
+        """
+        Reads boss animation pointer and returns the integer at that location
+
+        Args:
+            None
+
+        Returns:
+            Boss animation number (int)
+        """
         return memory_access.read_memory_i('eldenring.exe', self.__boss_animation_pointer)
 
     def get_boss_health(self) -> int:
+        """
+        Reads boss health pointer and returns the integer at that location
+
+        Args:
+            None
+
+        Returns:
+            Boss health (int)
+        """
         return memory_access.read_memory_i('eldenring.exe', self.__boss_health_pointer)
 
     def get_boss_max_health(self) -> int:
+        """
+        Reads boss max health and returns the integer at that location
+
+        Args:
+            None
+
+        Returns:
+            Boss max health (int)
+        """
         return memory_access.read_memory_i('eldenring.exe', self.__boss_max_health_pointer)
 
     def get_player_animation(self) -> int:
+        """
+        Reads player animation pointer and returns the integer at that location
+
+        Args:
+            None
+
+        Returns:
+            Player animation number (int)
+        """
         return memory_access.read_memory_i('eldenring.exe', self.__player_animation_pointer)
 
     def get_player_health(self) -> int:
+        """
+        Reads player health pointer and returns the integer at that location
+
+        Args:
+            None
+
+        Returns:
+            Player health (int)
+        """
         return memory_access.read_memory_i('eldenring.exe', self.__player_health_pointer)
 
     def get_player_stamina(self) -> int:
+        """
+        Reads player stamina pointer and returns the integer at that location
+
+        Args:
+            None
+
+        Returns:
+            Player stamina (int)
+        """
         return memory_access.read_memory_i('eldenring.exe', self.__player_stamina_pointer)
 
     def get_player_fp(self) -> int:
+        """
+        Reads player fp pointer and returns the integer at that location
+
+        Args:
+            None
+
+        Returns:
+            Player fp (int)
+        """
         return memory_access.read_memory_i('eldenring.exe', self.__player_fp_pointer)
 
     def get_player_max_health(self) -> int:
+        """
+        Reads player max health pointer and returns the integer at that location
+
+        Args:
+            None
+
+        Returns:
+            Player max health (int)
+        """
         return memory_access.read_memory_i('eldenring.exe', self.__player_max_health_pointer)
 
     def get_player_max_stamina(self) -> int:
+        """
+        Reads player max stamina pointer and returns the integer at that location
+
+        Args:
+            None
+
+        Returns:
+            Player max stamina (int)
+        """
         return memory_access.read_memory_i('eldenring.exe', self.__player_max_stamina_pointer)
 
     def get_player_max_fp(self) -> int:
+        """
+        Reads player max fp pointer and returns the integer at that location
+
+        Args:
+            None
+
+        Returns:
+            Player max fp (int)
+        """
         return memory_access.read_memory_i('eldenring.exe', self.__player_max_fp_pointer)
 
     def find_game_physics(self) -> None:
+        """
+        Reads the file that correlates to the pause pointer and sets the game_physics_pointer
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         self.__game_physics_pointer = memory_access.read_cheat_engine_file('PausePointer.txt')
 
     def find_targeted_enemy(self) -> None:
+        """
+        Reads the file that correlates to the targeted enemy pointer and sets the targeted_enemy_pointer
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         self.__targeted_enemy_pointer = memory_access.read_cheat_engine_file('TargetPointer.txt')
 
     def find_world_pointer(self) -> None:
+        """
+        Reads the file that correlates to the world pointer and sets the world_pointer
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         self.__world_pointer = memory_access.read_cheat_engine_file('WorldChrManPointer.txt')
 
     def pause_game(self) -> None:
+        """
+        Pauses and unpauses the game physics
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         if self.__game_physics_pointer == None:
             return
 
