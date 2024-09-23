@@ -2,15 +2,60 @@ import time
 import os.path
 import memory_access
 
-# TODO: Write google function strings
-# TODO: Perform Assertions and Raises
+# TODO: Perform Assertions and Raises, Error handling
 # TODO: Check all return types
 # TODO: Error handling
 
 # TODO: Update cheat table and check for offsets again
 # TODO: XYZ Player
+    # Local:
+        # x: (((local player + 0) + 190) + 68) + 70
+        # y: (((local player + 0) + 190) + 68) + 78
+        # z: (((local player + 0) + 190) + 68) + 74
+    # Rotation:
+        # cos: (((local player + 0) + 190) + 68) + 54
+        # sin: (((local player + 0) + 190) + 68) + 5C
 # TODO: XYZ Boss
-# TODO: Hardcode some TP Coords
+        # x: ((target + 190) + 68) + 0
+        # y: ((target + 190) + 68) + 8
+        # z: ((target + 190) + 68) + 4
+# TODO: Hardcode some TP Coords?
+    # TODO: Soldier of Godrick
+    # TODO: Lionine Misbegotten
+# TODO: TP Function:
+# TODO: Add new file to lua for NetManImp
+'''
+-- Find address!
+local x = readFloat("TPData") <- where to teleport
+local z = readFloat("TPData+4")
+local y = readFloat("TPData+8")
+
+# local coords
+local xPtrTp = "[[[[[WorldChrMan]+10EF8]+0]+190]+68]+70"
+local zPtrTp = "[[[[[WorldChrMan]+10EF8]+0]+190]+68]+74"
+local yPtrTp = "[[[[[WorldChrMan]+10EF8]+0]+190]+68]+78"
+
+# global coords
+local xGlobalPtr = "[[[[[[NetManImp]+ 80]+ E0] + 80] + 20] + 98] + 28"
+local zGlobalPtr = "[[[[[[NetManImp]+ 80]+ E0] + 80] + 20] + 98] + 1C"
+local yGlobalPtr = "[[[[[[NetManImp]+ 80]+ E0] + 80] + 20] + 98] + 2C"
+
+local gravityPtr = "[[[[[WorldChrMan]+10EF8]+0]+190]+68]+1D3" -- Nogravity
+writeInteger(gravityPtr, 1)
+
+-- Calculate
+xNew = x - (readFloat(xGlobalPtr) - readFloat(xPtrTp))
+zNew = z - (readFloat(zGlobalPtr) - readFloat(zPtrTp))
+yNew = (y - (readFloat(yGlobalPtr) + readFloat(yPtrTp))) * -1
+
+writeFloat(xPtrTp, xNew)
+writeFloat(zPtrTp, zNew)
+writeFloat(yPtrTp, yNew)
+'''
+
+# create NeedTarget.txt
+# Read TargetPointer.txt when TargetFound.txt exists
+
 
 class GameAccessor:
     def __init__(self):
@@ -20,6 +65,11 @@ class GameAccessor:
         self.__boss_animation_pointer = 0x0
         self.__boss_health_pointer = 0x0
         self.__boss_max_health_pointer = 0x0
+        self.__boss_x_position_pointer = 0x0
+        self.__boss_y_position_pointer = 0x0
+        self.__boss_z_position_pointer = 0x0
+        self.__boss_rotation_position_pointer = 0x0
+
 
         self.__game_physics_pointer = 0x0
 
@@ -32,6 +82,9 @@ class GameAccessor:
         self.__player_max_stamina_pointer = 0x0
         self.__player_fp_pointer = 0x0
         self.__player_max_fp_pointer = 0x0
+        self.__player_x_position_pointer = 0x0
+        self.__player_y_position_pointer = 0x0
+        self.__player_z_position_pointer = 0x0
 
         self.get_memory_values()
 
@@ -93,7 +146,7 @@ class GameAccessor:
         offset6 = memory_access.read_memory('eldenring.exe', offset5 + 0x18)
         self.__player_animation_pointer = offset6 + 0x40
 
-        # position + rotation
+        # l+g position + rotation
         # TODO
 
     def set_world_information(self) -> None:
@@ -130,7 +183,7 @@ class GameAccessor:
         self.__boss_health_pointer = boss + 0x138
         self.__boss_max_health_pointer = boss + 0x13c
 
-        # position + rotation
+        # l+g position + rotation
         # TODO
 
     def get_boss_animation(self) -> int:
@@ -313,3 +366,5 @@ if __name__ == "__main__":
     # try and find the world pointer and get to player on start
     game = GameAccessor()
     print(game.get_player_health())
+    print(game.get_player_fp())
+    print(game.get_player_max_fp())

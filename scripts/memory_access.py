@@ -64,7 +64,7 @@ def find_pattern_alt(_process, _pattern) -> int:
 
 def read_cheat_engine_file(_filename) -> int:
     ret_val : int
-    if os.path.isfile('place_cheat_table_here/' + _filename, 'r'):
+    if os.path.isfile('place_cheat_table_here/' + _filename):
         with open('place_cheat_table_here/' + _filename, 'r') as file:
             ret_val = int(file.readline())
     return ret_val

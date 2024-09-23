@@ -60,21 +60,40 @@ local function onTimer(timer)
     io.close(player_dead_file)
     pausegame_t=AOBScanModuleUnique("eldenring.exe","80 BB 28 01 00 00 00 0F 84","+X")
 
-    python_file = io.open("TargetPointer.txt", 'w')
-    num = readQword'LastLockOnTarget'
-    python_file:write(tostring(num))
-    python_file:close()
+    target_file = io.open("TargetPointer.txt", 'w')
+    tar_ptr = readQword'LastLockOnTarget'
+    target_file:write(tostring(tar_ptr))
+    target_file:close()
 
-    python_file2 = io.open("WorldChrManPointer.txt", 'w')
-    num2 = getAddress("WorldChrMan")
-    python_file2:write(tostring(readQword'num2'))
-    python_file2:close()
+    world_file = io.open("WorldChrManPointer.txt", 'w')
+    world_ptr = getAddress("WorldChrMan")
+    world_file:write(tostring(readQword'world_ptr'))
+    world_file:close()
 
-    python_file3 = io.open("PausePointer.txt", 'w')
-    python_file3:write(tostring(pausegame_t))
-    python_file3:close()
+    pause_file = io.open("PausePointer.txt", 'w')
+    pause_file:write(tostring(pausegame_t))
+    pause_file:close()
+
+    netman_file = io.open("NetManImpPointer.txt", 'w')
+    net_ptr = getAddress("NetManImp")
+    netman_file:write(tostring(readQword'net_ptr'))
+    netman_file:close()
 
     ready_file = io.open("DataWritten.txt", 'w')
+    ready_file:close()
+  end
+
+  target_needed = io.open('NeedTarget.txt', 'r')
+
+  if target_needed ~= nil then
+    io.close(target_needed)
+
+    target_file = io.open("TargetPointer.txt", 'w')
+    tar_ptr = readQword'LastLockOnTarget'
+    target_file:write(tostring(tar_ptr))
+    target_file:close()
+
+    ready_file = io.open("TargetFound.txt", 'w')
     ready_file:close()
   end
 end
