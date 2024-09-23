@@ -23,6 +23,11 @@ def read_memory_s(_process, _address) -> int:
     memory_value = pm.read_short(_address)
     return memory_value
 
+def read_memory_float(_process, _address) -> float:
+    pm = pymem.Pymem(_process)
+    memory_value = pm.read_float(_address)
+    return memory_value
+
 def read_memory_bytes(_process, _address, _len) -> bytes:
     pm = pymem.Pymem(_process)
     memory_value = pm.read_bytes(_address, _len)

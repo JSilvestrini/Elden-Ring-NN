@@ -74,6 +74,7 @@ class GameAccessor:
         self.__game_physics_pointer = 0x0
 
         self.__world_pointer = 0x0
+        self.__netmanimp_pointer = 0x0
         self.__local_player_pointer = 0x0
         self.__player_animation_pointer = 0x0
         self.__player_health_pointer = 0x0
@@ -82,9 +83,14 @@ class GameAccessor:
         self.__player_max_stamina_pointer = 0x0
         self.__player_fp_pointer = 0x0
         self.__player_max_fp_pointer = 0x0
-        self.__player_x_position_pointer = 0x0
-        self.__player_y_position_pointer = 0x0
-        self.__player_z_position_pointer = 0x0
+        self.__player_local_x_position_pointer = 0x0
+        self.__player_local_y_position_pointer = 0x0
+        self.__player_local_z_position_pointer = 0x0
+        self.__player_global_x_position_pointer = 0x0
+        self.__player_global_y_position_pointer = 0x0
+        self.__player_global_z_position_pointer = 0x0
+        self.__player_cos_pointer = 0x0
+        self.__player_sin_pointer = 0x0
 
         self.get_memory_values()
 
@@ -146,8 +152,24 @@ class GameAccessor:
         offset6 = memory_access.read_memory('eldenring.exe', offset5 + 0x18)
         self.__player_animation_pointer = offset6 + 0x40
 
-        # l+g position + rotation
-        # TODO
+        # local position + rotation
+        offset7 = memory_access.read_memory('eldenring.exe', offset2 + 0x68)
+        self.__player_local_x_position_pointer = offset7 + 0x70
+        self.__player_local_y_position_pointer = offset7 + 0x78
+        self.__player_local_z_position_pointer = offset7 + 0x74
+        self.__player_cos_pointer = offset7 + 0x54
+        self.__player_sin_pointer = offset7 + 0x5c
+
+        # global position Pointer
+        g_offset1 = memory_access.read_memory('eldenring.exe', self.__netmanimp_pointer)
+        g_offset2 = memory_access.read_memory('eldenring.exe', g_offset1 + 0x80)
+        g_offset3 = memory_access.read_memory('eldenring.exe', g_offset2 + 0xe0)
+        g_offset4 = memory_access.read_memory('eldenring.exe', g_offset3 + 0x80)
+        g_offset5 = memory_access.read_memory('eldenring.exe', g_offset4 + 0x20)
+        g_offset6 = memory_access.read_memory('eldenring.exe', g_offset5 + 0x98)
+        self.__player_global_x_position_pointer = g_offset6 + 0x28
+        self.__player_global_y_position_pointer = g_offset6 + 0x2c
+        self.__player_global_z_position_pointer = g_offset6 + 0x1c
 
     def set_world_information(self) -> None:
         """
@@ -162,6 +184,7 @@ class GameAccessor:
         self.find_game_physics()
         self.find_world_pointer()
         self.find_targeted_enemy()
+        self.find_netman_pointer()
 
     def set_boss_information(self) -> None:
         """
@@ -306,6 +329,39 @@ class GameAccessor:
         """
         return memory_access.read_memory_i('eldenring.exe', self.__player_max_fp_pointer)
 
+    def get_player_local_coords(self) -> list:
+        """
+        Reads player local coordinate pointers and returns those values
+
+        Args:
+            None
+
+        Returns:
+            Player local coordinates (list<float>)
+        """
+        return [memory_access.read_memory_float('eldenring.exe', self.__player_local_x_position_pointer),
+                memory_access.read_memory_float('eldenring.exe', self.__player_local_y_position_pointer),
+                memory_access.read_memory_float('eldenring.exe', self.__player_local_z_position_pointer)]
+    
+    def get_player_rotations(self) -> list:
+        # TODO: is this a float or is it bigger?
+        return [memory_access.read_memory_float('eldenring.exe', self.__player_cos_pointer),
+                memory_access.read_memory_float('eldenring.exe', self.__player_sin_pointer)]
+
+    def get_player_global_coords(self) -> list:
+        """
+        Reads player global coordinate pointers and returns those values
+
+        Args:
+            None
+
+        Returns:
+            Player global coordinates (list<float>)
+        """
+        return [memory_access.read_memory_float('eldenring.exe', self.__player_global_x_position_pointer),
+                memory_access.read_memory_float('eldenring.exe', self.__player_global_y_position_pointer),
+                memory_access.read_memory_float('eldenring.exe', self.__player_global_z_position_pointer)]
+
     def find_game_physics(self) -> None:
         """
         Reads the file that correlates to the pause pointer and sets the game_physics_pointer
@@ -328,6 +384,11 @@ class GameAccessor:
         Returns:
             None
         """
+        if not os.path.isfile('TargetPointer.txt'):
+            with open('place_cheat_table_here/NeedTarget.txt', 'w') as file:
+                file.write('1')
+        while not os.path.isfile('TargetFound.txt'):
+            time.sleep(1)
         self.__targeted_enemy_pointer = memory_access.read_cheat_engine_file('TargetPointer.txt')
 
     def find_world_pointer(self) -> None:
@@ -341,6 +402,18 @@ class GameAccessor:
             None
         """
         self.__world_pointer = memory_access.read_cheat_engine_file('WorldChrManPointer.txt')
+
+    def find_netman_pointer(self) -> None:
+        """
+        Finds the NetManImp Pointer for using the teleport function
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        self.__netmanimp_pointer = memory_access.read_cheat_engine_file('NetManImpPointer.txt')
 
     def pause_game(self) -> None:
         """
