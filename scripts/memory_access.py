@@ -13,12 +13,12 @@ def read_memory(_process, _address) -> int:
     memory_value = pm.read_longlong(_address)
     return memory_value
 
-def read_memory_i(_process, _address) -> int:
+def read_memory_int(_process, _address) -> int:
     pm = pymem.Pymem(_process)
     memory_value = pm.read_int(_address)
     return memory_value
 
-def read_memory_s(_process, _address) -> int:
+def read_memory_short(_process, _address) -> int:
     pm = pymem.Pymem(_process)
     memory_value = pm.read_short(_address)
     return memory_value
@@ -33,9 +33,13 @@ def read_memory_bytes(_process, _address, _len) -> bytes:
     memory_value = pm.read_bytes(_address, _len)
     return memory_value
 
-def base_pointer(_process) -> int:
-    pm = pymem.Pymem(_process)
-    return pm.base_address
+def write_memory(_process, _address, _value) -> None: ...
+
+def write_memory_int(_process, _address, _value) -> None: ...
+
+def write_memory_short(_process, _address, _value) -> None: ...
+
+def write_memory_float(_process, _address, _value) -> None: ...
 
 def write_byte(_process, _address, _byte) -> None:
     pm = pymem.Pymem(_process)

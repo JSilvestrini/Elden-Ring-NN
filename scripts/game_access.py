@@ -6,24 +6,14 @@ import memory_access
 # TODO: Check all return types
 # TODO: Error handling
 
-# TODO: Update cheat table and check for offsets again
-# TODO: XYZ Player
-    # Local:
-        # x: (((local player + 0) + 190) + 68) + 70
-        # y: (((local player + 0) + 190) + 68) + 78
-        # z: (((local player + 0) + 190) + 68) + 74
-    # Rotation:
-        # cos: (((local player + 0) + 190) + 68) + 54
-        # sin: (((local player + 0) + 190) + 68) + 5C
 # TODO: XYZ Boss
         # x: ((target + 190) + 68) + 0
         # y: ((target + 190) + 68) + 8
         # z: ((target + 190) + 68) + 4
-# TODO: Hardcode some TP Coords?
+# TODO: Hardcode some TP Coords into json?
     # TODO: Soldier of Godrick
     # TODO: Lionine Misbegotten
 # TODO: TP Function:
-# TODO: Add new file to lua for NetManImp
 '''
 -- Find address!
 local x = readFloat("TPData") <- where to teleport
@@ -52,10 +42,6 @@ writeFloat(xPtrTp, xNew)
 writeFloat(zPtrTp, zNew)
 writeFloat(yPtrTp, yNew)
 '''
-
-# create NeedTarget.txt
-# Read TargetPointer.txt when TargetFound.txt exists
-
 
 class GameAccessor:
     def __init__(self):
@@ -219,7 +205,7 @@ class GameAccessor:
         Returns:
             Boss animation number (int)
         """
-        return memory_access.read_memory_i('eldenring.exe', self.__boss_animation_pointer)
+        return memory_access.read_memory_int('eldenring.exe', self.__boss_animation_pointer)
 
     def get_boss_health(self) -> int:
         """
@@ -231,7 +217,7 @@ class GameAccessor:
         Returns:
             Boss health (int)
         """
-        return memory_access.read_memory_i('eldenring.exe', self.__boss_health_pointer)
+        return memory_access.read_memory_int('eldenring.exe', self.__boss_health_pointer)
 
     def get_boss_max_health(self) -> int:
         """
@@ -243,7 +229,7 @@ class GameAccessor:
         Returns:
             Boss max health (int)
         """
-        return memory_access.read_memory_i('eldenring.exe', self.__boss_max_health_pointer)
+        return memory_access.read_memory_int('eldenring.exe', self.__boss_max_health_pointer)
 
     def get_player_animation(self) -> int:
         """
@@ -255,7 +241,7 @@ class GameAccessor:
         Returns:
             Player animation number (int)
         """
-        return memory_access.read_memory_i('eldenring.exe', self.__player_animation_pointer)
+        return memory_access.read_memory_int('eldenring.exe', self.__player_animation_pointer)
 
     def get_player_health(self) -> int:
         """
@@ -267,7 +253,7 @@ class GameAccessor:
         Returns:
             Player health (int)
         """
-        return memory_access.read_memory_i('eldenring.exe', self.__player_health_pointer)
+        return memory_access.read_memory_int('eldenring.exe', self.__player_health_pointer)
 
     def get_player_stamina(self) -> int:
         """
@@ -279,7 +265,7 @@ class GameAccessor:
         Returns:
             Player stamina (int)
         """
-        return memory_access.read_memory_i('eldenring.exe', self.__player_stamina_pointer)
+        return memory_access.read_memory_int('eldenring.exe', self.__player_stamina_pointer)
 
     def get_player_fp(self) -> int:
         """
@@ -291,7 +277,7 @@ class GameAccessor:
         Returns:
             Player fp (int)
         """
-        return memory_access.read_memory_i('eldenring.exe', self.__player_fp_pointer)
+        return memory_access.read_memory_int('eldenring.exe', self.__player_fp_pointer)
 
     def get_player_max_health(self) -> int:
         """
@@ -303,7 +289,7 @@ class GameAccessor:
         Returns:
             Player max health (int)
         """
-        return memory_access.read_memory_i('eldenring.exe', self.__player_max_health_pointer)
+        return memory_access.read_memory_int('eldenring.exe', self.__player_max_health_pointer)
 
     def get_player_max_stamina(self) -> int:
         """
@@ -315,7 +301,7 @@ class GameAccessor:
         Returns:
             Player max stamina (int)
         """
-        return memory_access.read_memory_i('eldenring.exe', self.__player_max_stamina_pointer)
+        return memory_access.read_memory_int('eldenring.exe', self.__player_max_stamina_pointer)
 
     def get_player_max_fp(self) -> int:
         """
@@ -327,7 +313,7 @@ class GameAccessor:
         Returns:
             Player max fp (int)
         """
-        return memory_access.read_memory_i('eldenring.exe', self.__player_max_fp_pointer)
+        return memory_access.read_memory_int('eldenring.exe', self.__player_max_fp_pointer)
 
     def get_player_local_coords(self) -> list:
         """
@@ -337,13 +323,22 @@ class GameAccessor:
             None
 
         Returns:
-            Player local coordinates (list<float>)
+            Player local coordinates [x, y, z] (list<float>)
         """
         return [memory_access.read_memory_float('eldenring.exe', self.__player_local_x_position_pointer),
                 memory_access.read_memory_float('eldenring.exe', self.__player_local_y_position_pointer),
                 memory_access.read_memory_float('eldenring.exe', self.__player_local_z_position_pointer)]
     
     def get_player_rotations(self) -> list:
+        """
+        Reads player cos and sin rotation pointers and returns those values
+
+        Args:
+            None
+
+        Returns:
+            Player [cos, sin] (list<float>)
+        """
         # TODO: is this a float or is it bigger?
         return [memory_access.read_memory_float('eldenring.exe', self.__player_cos_pointer),
                 memory_access.read_memory_float('eldenring.exe', self.__player_sin_pointer)]
@@ -356,11 +351,33 @@ class GameAccessor:
             None
 
         Returns:
-            Player global coordinates (list<float>)
+            Player global coordinates [x, y, z] (list<float>)
         """
         return [memory_access.read_memory_float('eldenring.exe', self.__player_global_x_position_pointer),
                 memory_access.read_memory_float('eldenring.exe', self.__player_global_y_position_pointer),
                 memory_access.read_memory_float('eldenring.exe', self.__player_global_z_position_pointer)]
+
+    def set_player_local_coords(self, coords: list) -> None: ...
+    """
+    Allows the teleport function to change the local coordinates of the player
+
+    Args:
+        coords (list<floats>): The [x, y, z] coordinates
+
+    Returns:
+        None
+    """
+
+    def set_player_rotation(self, cos: float) -> None: ...
+    """
+    Allows the player to be rotated
+
+    Args:
+        Cos (float): This is the cosine of the rotation angle
+
+    Returns:
+        None
+    """
 
     def find_game_physics(self) -> None:
         """
@@ -441,3 +458,4 @@ if __name__ == "__main__":
     print(game.get_player_health())
     print(game.get_player_fp())
     print(game.get_player_max_fp())
+    print(game.get_player_local_coords())
