@@ -12,40 +12,16 @@ import memory_access
         # z: ((target + 190) + 68) + 4
 # TODO: Hardcode some TP Coords into json?
     # TODO: Soldier of Godrick
+        # local: <-0.9855866432, 5.026652336, 0.9077949524>
+        # global: <8.907794952, 77.02664948, 0.6983950138>
     # TODO: Lionine Misbegotten
-# TODO: TP Function:
-'''
--- Find address!
-local x = readFloat("TPData") <- where to teleport
-local z = readFloat("TPData+4")
-local y = readFloat("TPData+8")
-
-# local coords
-local xPtrTp = "[[[[[WorldChrMan]+10EF8]+0]+190]+68]+70"
-local zPtrTp = "[[[[[WorldChrMan]+10EF8]+0]+190]+68]+74"
-local yPtrTp = "[[[[[WorldChrMan]+10EF8]+0]+190]+68]+78"
-
-# global coords
-local xGlobalPtr = "[[[[[[NetManImp]+ 80]+ E0] + 80] + 20] + 98] + 28"
-local zGlobalPtr = "[[[[[[NetManImp]+ 80]+ E0] + 80] + 20] + 98] + 1C"
-local yGlobalPtr = "[[[[[[NetManImp]+ 80]+ E0] + 80] + 20] + 98] + 2C"
-
-local gravityPtr = "[[[[[WorldChrMan]+10EF8]+0]+190]+68]+1D3" -- Nogravity
-writeInteger(gravityPtr, 1)
-
--- Calculate
-xNew = x - (readFloat(xGlobalPtr) - readFloat(xPtrTp))
-zNew = z - (readFloat(zGlobalPtr) - readFloat(zPtrTp))
-yNew = (y - (readFloat(yGlobalPtr) + readFloat(yPtrTp))) * -1
-
-writeFloat(xPtrTp, xNew)
-writeFloat(zPtrTp, zNew)
-writeFloat(yPtrTp, yNew)
-'''
+    # TODO: The map is unloaded, perform some hardcoded actions to talk to Gideon, then TP to fog, then drink flask and enter.
+# TODO: Fix global coordinates, something is wrong
 
 class GameAccessor:
     def __init__(self):
         self.__is_paused = False
+        self.__gravity = True
 
         self.__targeted_enemy_pointer = 0x0
         self.__boss_animation_pointer = 0x0
@@ -56,8 +32,8 @@ class GameAccessor:
         self.__boss_z_position_pointer = 0x0
         self.__boss_rotation_position_pointer = 0x0
 
-
         self.__game_physics_pointer = 0x0
+        self.__gravity_pointer = 0x0
 
         self.__world_pointer = 0x0
         self.__netmanimp_pointer = 0x0
@@ -105,6 +81,7 @@ class GameAccessor:
         os.remove('place_cheat_table_here/DataWritten.txt')
         os.remove('place_cheat_table_here/TargetPointer.txt')
         os.remove('place_cheat_table_here/WorldChrManPointer.txt')
+        os.remove('place_cheat_table_here/NetManImpPointer.txt')
         os.remove('place_cheat_table_here/PausePointer.txt')
         os.remove('place_cheat_table_here/PlayerDead.txt')
 
@@ -146,16 +123,21 @@ class GameAccessor:
         self.__player_cos_pointer = offset7 + 0x54
         self.__player_sin_pointer = offset7 + 0x5c
 
+        # gravity
+        self.__gravity_pointer = offset7 + 0x1D3
+
         # global position Pointer
-        g_offset1 = memory_access.read_memory('eldenring.exe', self.__netmanimp_pointer)
-        g_offset2 = memory_access.read_memory('eldenring.exe', g_offset1 + 0x80)
-        g_offset3 = memory_access.read_memory('eldenring.exe', g_offset2 + 0xe0)
-        g_offset4 = memory_access.read_memory('eldenring.exe', g_offset3 + 0x80)
-        g_offset5 = memory_access.read_memory('eldenring.exe', g_offset4 + 0x20)
-        g_offset6 = memory_access.read_memory('eldenring.exe', g_offset5 + 0x98)
-        self.__player_global_x_position_pointer = g_offset6 + 0x28
-        self.__player_global_y_position_pointer = g_offset6 + 0x2c
-        self.__player_global_z_position_pointer = g_offset6 + 0x1c
+        g_offset1 = memory_access.read_memory('eldenring.exe', self.__local_player_pointer)
+
+        #g_offset1 = memory_access.read_memory('eldenring.exe', self.__netmanimp_pointer)
+        #g_offset2 = memory_access.read_memory('eldenring.exe', g_offset1 + 0x80)
+        #g_offset3 = memory_access.read_memory('eldenring.exe', g_offset2 + 0xe0)
+        #g_offset4 = memory_access.read_memory('eldenring.exe', g_offset3 + 0x80)
+        #g_offset5 = memory_access.read_memory('eldenring.exe', g_offset4 + 0x20)
+        #g_offset6 = memory_access.read_memory('eldenring.exe', g_offset5 + 0x98)
+        self.__player_global_x_position_pointer = g_offset1 + 0x6C4
+        self.__player_global_y_position_pointer = g_offset1 + 0x6C8
+        self.__player_global_z_position_pointer = g_offset1 + 0x6CC
 
     def set_world_information(self) -> None:
         """
@@ -357,16 +339,20 @@ class GameAccessor:
                 memory_access.read_memory_float('eldenring.exe', self.__player_global_y_position_pointer),
                 memory_access.read_memory_float('eldenring.exe', self.__player_global_z_position_pointer)]
 
-    def set_player_local_coords(self, coords: list) -> None: ...
-    """
-    Allows the teleport function to change the local coordinates of the player
+    def set_player_local_coords(self, coords: list) -> None:
+        """
+        Allows the teleport function to change the local coordinates of the player
 
-    Args:
-        coords (list<floats>): The [x, y, z] coordinates
+        Args:
+            coords (list<floats>): The [x, y, z] coordinates
 
-    Returns:
-        None
-    """
+        Returns:
+            None
+        """
+        memory_access.write_memory_float('eldenring.exe', self.__player_local_x_position_pointer, coords[0])
+        memory_access.write_memory_float('eldenring.exe', self.__player_local_y_position_pointer, coords[1])
+        memory_access.write_memory_float('eldenring.exe', self.__player_local_z_position_pointer, coords[2])
+
 
     def set_player_rotation(self, cos: float) -> None: ...
     """
@@ -401,10 +387,10 @@ class GameAccessor:
         Returns:
             None
         """
-        if not os.path.isfile('TargetPointer.txt'):
+        if not os.path.isfile('place_cheat_table_here/TargetPointer.txt'):
             with open('place_cheat_table_here/NeedTarget.txt', 'w') as file:
                 file.write('1')
-        while not os.path.isfile('TargetFound.txt'):
+        while not os.path.isfile('place_cheat_table_here/TargetFound.txt'):
             time.sleep(1)
         self.__targeted_enemy_pointer = memory_access.read_cheat_engine_file('TargetPointer.txt')
 
@@ -452,6 +438,25 @@ class GameAccessor:
 
         self.__is_paused = not self.__is_paused
 
+    def toggle_gravity(self) -> None:
+        if self.__gravity:
+            memory_access.write_memory_int('eldenring.exe', self.__gravity_pointer, 1)
+            self.__gravity = False
+        else:
+            self.__gravity = True
+            memory_access.write_memory_int('eldenring.exe', self.__gravity_pointer, 0)
+
+    def teleport(self, coords: list) -> None:
+        current_local_coords = self.get_player_local_coords()
+        current_global_coords = self.get_player_global_coords()
+        self.toggle_gravity()
+        new_coords = [coords[0] - (current_global_coords[0] - current_local_coords[0]),
+                     (coords[1] - (current_global_coords[1] - current_local_coords[1])) * -1,
+                      coords[2] - (current_global_coords[2] - current_local_coords[2])]
+        print(new_coords)
+        self.set_player_local_coords(new_coords)
+        self.toggle_gravity()
+
 if __name__ == "__main__":
     # try and find the world pointer and get to player on start
     game = GameAccessor()
@@ -459,3 +464,5 @@ if __name__ == "__main__":
     print(game.get_player_fp())
     print(game.get_player_max_fp())
     print(game.get_player_local_coords())
+    print(game.get_player_global_coords())
+    game.teleport([-0.9855866432, 5.026652336, 0.9077949524])

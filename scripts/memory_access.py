@@ -39,7 +39,9 @@ def write_memory_int(_process, _address, _value) -> None: ...
 
 def write_memory_short(_process, _address, _value) -> None: ...
 
-def write_memory_float(_process, _address, _value) -> None: ...
+def write_memory_float(_process, _address, _value) -> None:
+    pm = pymem.Pymem(_process)
+    pm.write_float(_address, _value)
 
 def write_byte(_process, _address, _byte) -> None:
     pm = pymem.Pymem(_process)
