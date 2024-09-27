@@ -110,30 +110,3 @@ class Enemy:
             Int
         """
         return memory_access.read_memory_int('eldenring.exe', self.__id_pointer)
-
-'''
-    def find_targeted_enemy(self) -> None:
-        """
-        Reads the file that correlates to the targeted enemy pointer and sets the targeted_enemy_pointer
-
-        Args:
-            None
-
-        Returns:
-            None
-        """
-        target_found = False
-        potential_pointer = 0
-        with open('place_cheat_table_here/NeedTarget.txt', 'w') as file:
-            file.write('1')
-        while not target_found:
-            print("Waiting for Target Pointer")
-            time.sleep(1)
-            if os.path.isfile('place_cheat_table_here/TargetFound.txt'):
-                potential_pointer = memory_access.read_cheat_engine_file('TargetPointer.txt')
-            if (potential_pointer != self.__previous_targeted_enemy_pointer and 
-                potential_pointer != 0): # and potential_pointer not in self.current_enemies_pointers
-                self.__targeted_enemy_pointer = potential_pointer
-                target_found = True
-        os.remove('place_cheat_table_here/NeedTarget.txt')
-        os.remove('place_cheat_table_here/TargetFound.txt')'''

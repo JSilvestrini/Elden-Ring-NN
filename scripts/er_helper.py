@@ -12,7 +12,7 @@ def find_activate_window() -> None:
     Returns:
         None
     """
-    hwnd = win32gui.FindWindow("ELDEN RING™", "ELDEN RING™")
+    hwnd = win32gui.FindWindow(None, "ELDEN RING™")
     if hwnd:
         win32gui.SetForegroundWindow(hwnd)
         win32gui.SetActiveWindow(hwnd)
@@ -33,9 +33,9 @@ def key_presses(keys: list) -> None:
     """
     for i in keys:
         pydirectinput.keyDown(i, _pause=False)
-        time.sleep(.2)
+        time.sleep(.12)
         pydirectinput.keyUp(i, _pause=False)
-        time.sleep(.2)
+        time.sleep(.12)
 
 def key_combos(keys: list) -> None:
     """
@@ -49,10 +49,10 @@ def key_combos(keys: list) -> None:
     """
     for i in keys:
         pydirectinput.keyDown(i, _pause=False)
-    time.sleep(.2)
+    time.sleep(.12)
     for i in keys:
         pydirectinput.keyUp(i, _pause=False)
-    time.sleep(.2)
+    time.sleep(.12)
 
 def key_press(key: str, t: float) -> None:
     """
@@ -68,7 +68,7 @@ def key_press(key: str, t: float) -> None:
     pydirectinput.keyDown(key, _pause=False)
     time.sleep(t)
     pydirectinput.keyUp(key, _pause=False)
-    time.sleep(.2)
+    time.sleep(.12)
 
 def enter_boss() -> None:
     """
@@ -83,5 +83,5 @@ def enter_boss() -> None:
     key_press('w', 1)
     key_press('e', 0.3)
     time.sleep(2.5)
-    key_press('w', .3)
+    key_press('w', .5)
     key_press('q', 0.2)
