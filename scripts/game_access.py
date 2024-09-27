@@ -6,10 +6,6 @@ import memory_access
 # TODO: Check all return types
 # TODO: Error handling
 
-# TODO: XYZ Boss
-        # x: ((target + 190) + 68) + 0
-        # y: ((target + 190) + 68) + 8
-        # z: ((target + 190) + 68) + 4
 # TODO: Hardcode some TP Coords into json?
     # TODO: Soldier of Godrick
         # local: <-0.9855866432, 5.026652336, 0.9077949524>
@@ -25,10 +21,6 @@ class GameAccessor:
         self.__boss_animation_pointer = 0x0
         self.__boss_health_pointer = 0x0
         self.__boss_max_health_pointer = 0x0
-        self.__boss_x_position_pointer = 0x0
-        self.__boss_y_position_pointer = 0x0
-        self.__boss_z_position_pointer = 0x0
-        self.__boss_rotation_position_pointer = 0x0
 
         self.__game_physics_pointer = 0x0
         self.__gravity_pointer = 0x0
@@ -143,18 +135,18 @@ class GameAccessor:
         Returns:
             None
         """
-        # animations
-        offset1 = memory_access.read_memory('eldenring.exe', self.__targeted_enemy_pointer + 0x190)
-        offset2 = memory_access.read_memory('eldenring.exe', offset1 + 0x18)
-        self.__boss_animation_pointer = offset2 + 0x40
+        if self.__targeted_enemy_pointer != 0:
+            # animations
+            offset1 = memory_access.read_memory('eldenring.exe', self.__targeted_enemy_pointer + 0x190)
+            offset2 = memory_access.read_memory('eldenring.exe', offset1 + 0x18)
+            self.__boss_animation_pointer = offset2 + 0x40
 
-        # stats
-        boss = memory_access.read_memory('eldenring.exe', offset1)
-        self.__boss_health_pointer = boss + 0x138
-        self.__boss_max_health_pointer = boss + 0x13c
-
-        # l+g position + rotation
-        # TODO
+            # stats
+            boss = memory_access.read_memory('eldenring.exe', offset1)
+            self.__boss_health_pointer = boss + 0x138
+            self.__boss_max_health_pointer = boss + 0x13c
+        else:
+            self.find_targeted_enemy()
 
     def get_boss_animation(self) -> int:
         """
@@ -300,35 +292,8 @@ class GameAccessor:
         Returns:
             Player [cos, sin] (list<float>)
         """
-        # TODO: is this a float or is it bigger?
         return [memory_access.read_memory_float('eldenring.exe', self.__player_cos_pointer),
                 memory_access.read_memory_float('eldenring.exe', self.__player_sin_pointer)]
-
-# TODO
-    def get_targeted_enemy_coords(self) -> list:
-        """
-        Reads Enemy coordinate pointers and returns those values
-
-        Args:
-            None
-
-        Returns:
-            Enemy coordinates [x, y, z] (list<float>)
-        """
-        ...
-
-# TODO
-    def get_targeted_enemy_rotation(self) -> list:
-        """
-        Reads enemy cos and sin rotation pointers and returns those values
-
-        Args:
-            None
-
-        Returns:
-            Enemy [cos, sin] (list<float>)
-        """
-        ...
 
     def set_player_local_coords(self, coords: list) -> None:
         """
@@ -345,7 +310,7 @@ class GameAccessor:
         memory_access.write_memory_float('eldenring.exe', self.__player_local_z_position_pointer, coords[2])
 
 # TODO
-    def set_player_rotation(self, cos: float) -> None:
+    def set_player_rotation(self, cos: float, sin: float) -> None:
         """
         Allows the player to be rotated
 
@@ -355,7 +320,8 @@ class GameAccessor:
         Returns:
             None
         """
-        ...
+        memory_access.write_memory_float('eldenring.exe', self.__player_cos_pointer, cos)
+        memory_access.write_memory_float('eldenring.exe', self.__player_sin_pointer, sin)
 
     def find_game_physics(self) -> None:
         """
@@ -379,12 +345,16 @@ class GameAccessor:
         Returns:
             None
         """
+        potential_pointer = 0
         with open('place_cheat_table_here/NeedTarget.txt', 'w') as file:
             file.write('1')
-        while not os.path.isfile('place_cheat_table_here/TargetFound.txt'):
+        while potential_pointer == 0:
             print("Waiting for Target Pointer")
             time.sleep(1)
-        self.__targeted_enemy_pointer = memory_access.read_cheat_engine_file('TargetPointer.txt')
+            potential_pointer = memory_access.read_cheat_engine_file('TargetPointer.txt')
+        self.__targeted_enemy_pointer = potential_pointer
+        os.remove('place_cheat_table_here/NeedTarget.txt')
+        os.remove('place_cheat_table_here/TargetFound.txt')
 
     def find_world_pointer(self) -> None:
         """
@@ -419,6 +389,15 @@ class GameAccessor:
         self.__is_paused = not self.__is_paused
 
     def toggle_gravity(self) -> None:
+        """
+        Turns the gravity on and off, was originally used to teleport the player
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         if self.__gravity:
             memory_access.write_memory_int('eldenring.exe', self.__gravity_pointer, 1)
             self.__gravity = False
@@ -427,10 +406,4 @@ class GameAccessor:
             self.__gravity = True
 
 if __name__ == "__main__":
-    # try and find the world pointer and get to player on start
-    game = GameAccessor()
-    print(game.get_player_health())
-    print(game.get_player_fp())
-    print(game.get_player_max_fp())
-    print(game.get_player_local_coords())
-    game.set_player_local_coords([-0.6420863867, 5.407506466, 0.9076620936])
+    ...
