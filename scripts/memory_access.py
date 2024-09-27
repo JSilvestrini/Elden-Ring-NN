@@ -33,11 +33,17 @@ def read_memory_bytes(_process, _address, _len) -> bytes:
     memory_value = pm.read_bytes(_address, _len)
     return memory_value
 
-def write_memory(_process, _address, _value) -> None: ...
+def write_memory(_process, _address, _value) -> None:
+    pm = pymem.Pymem(_process)
+    pm.write_longlong(_address, _value)
 
-def write_memory_int(_process, _address, _value) -> None: ...
+def write_memory_int(_process, _address, _value) -> None:
+    pm = pymem.Pymem(_process)
+    pm.write_int(_address, _value)
 
-def write_memory_short(_process, _address, _value) -> None: ...
+def write_memory_short(_process, _address, _value) -> None:
+    pm = pymem.Pymem(_process)
+    pm.write_short(_address, _value)
 
 def write_memory_float(_process, _address, _value) -> None:
     pm = pymem.Pymem(_process)
@@ -70,7 +76,7 @@ def find_pattern_single(_process, _pattern) -> int:
 
 def find_pattern_alt(_process, _pattern) -> int:
     pm = pymem.Pymem(_process)
-    a = pymem.pattern.pattern_scan_all(pm.process_handle, _pattern, return_multiple=True)
+    a = pymem.pattern.pattern_scan_all(pm.process_handle, _pattern, return_multiple=False)
     return a
 
 def read_cheat_engine_file(_filename) -> int:
