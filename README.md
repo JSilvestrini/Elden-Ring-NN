@@ -50,7 +50,6 @@ Inside of Targeted Enemy, create a new header that has a script, the easiest (an
 
 ```lua
 {$lua}
-{$lua}
 if not scriptTimers then scriptTimers = {} end
 
 local function onTimer(timer)
