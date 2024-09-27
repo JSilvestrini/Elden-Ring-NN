@@ -17,6 +17,7 @@ if __name__ == "__main__":
     er_helper.key_press('q', .12)
     game.check_for_enemies()
     er_helper.key_press('3', .12)
+    # takes a solid 1 or 2 seconds to grab new enemy ID
     game.check_for_enemies()
     enemy = game.get_enemies()
     print(len(enemy))
