@@ -14,9 +14,15 @@ import memory_access
 
 class GameAccessor:
     def __init__(self):
+        self.__targeted_enemy_pointer = 0x0
+        self.reset()
+        self.get_memory_values()
+
+    def reset(self) -> None:
         self.__is_paused = False
         self.__gravity = True
 
+        self.__previous_targeted_enemy_pointer = self.__targeted_enemy_pointer
         self.__targeted_enemy_pointer = 0x0
         self.__boss_animation_pointer = 0x0
         self.__boss_health_pointer = 0x0
@@ -39,8 +45,6 @@ class GameAccessor:
         self.__player_local_z_position_pointer = 0x0
         self.__player_cos_pointer = 0x0
         self.__player_sin_pointer = 0x0
-
-        self.get_memory_values()
 
     def get_memory_values(self) -> None:
         """
@@ -348,7 +352,7 @@ class GameAccessor:
         potential_pointer = 0
         with open('place_cheat_table_here/NeedTarget.txt', 'w') as file:
             file.write('1')
-        while potential_pointer == 0:
+        while potential_pointer == 0 and potential_pointer != self.__previous_targeted_enemy_pointer:
             print("Waiting for Target Pointer")
             time.sleep(1)
             potential_pointer = memory_access.read_cheat_engine_file('TargetPointer.txt')

@@ -50,6 +50,7 @@ Inside of Targeted Enemy, create a new header that has a script, the easiest (an
 
 ```lua
 {$lua}
+{$lua}
 if not scriptTimers then scriptTimers = {} end
 
 local function onTimer(timer)
@@ -74,11 +75,6 @@ local function onTimer(timer)
     pause_file:write(tostring(pausegame_t))
     pause_file:close()
 
-    netman_file = io.open("NetManImpPointer.txt", 'w')
-    net_ptr = getAddress("NetManImp")
-    netman_file:write(tostring(readQword'net_ptr'))
-    netman_file:close()
-
     ready_file = io.open("DataWritten.txt", 'w')
     ready_file:close()
   end
@@ -88,8 +84,8 @@ local function onTimer(timer)
   if target_needed ~= nil then
     io.close(target_needed)
 
-    target_file = io.open("TargetPointer.txt", 'w')
     tar_ptr = readQword'LastLockOnTarget'
+    target_file = io.open("TargetPointer.txt", 'w')
     target_file:write(tostring(tar_ptr))
     target_file:close()
 
