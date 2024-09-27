@@ -68,6 +68,21 @@ def read_memory_float(_process: str, _address: int) -> float:
     memory_value = pm.read_float(_address)
     return memory_value
 
+def read_memory_double(_process: str, _address: int) -> float:
+    """
+    Reads the double in _process at _address
+
+    Args:
+        _process: the process name
+        _address: the address in memory
+
+    Returns:
+        float: the double value at that location
+    """
+    pm = pymem.Pymem(_process)
+    memory_value = pm.read_double(_address)
+    return memory_value
+
 def read_memory_bytes(_process: str, _address: int, _len: int) -> bytes:
     """
     Reads the bytes in _process at _address

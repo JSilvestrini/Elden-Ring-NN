@@ -1,24 +1,30 @@
 from game_access import GameAccessor
+import er_helper
+from enemies import Enemy
+import walk_back
 import dxcam
-import numpy
 
 class EldenRing:
     def __init__(self):
         # game access
-        # player health
-        # player max health
-        # player stamina
-        # player max stamina
-        # player mana
-        # player max mana
-        # player animation
-        # boss health
-        # boss animation
+        # player
+            # player health
+            # player max health
+            # player stamina
+            # player max stamina
+            # player mana
+            # player max mana
+            # player animation
+            # player coords
+        # list of enemies
+            # boss health
+            # boss animation
+            # enemy coords
         # reward
         # frame queue
         # screenshot bool
         # player dead
-        # boss dead
+        # boss (or bosses) dead
         # walk_back class (does not need a reset)
         ...
     def reset(self) -> None:

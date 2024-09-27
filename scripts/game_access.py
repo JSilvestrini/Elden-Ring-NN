@@ -1,6 +1,7 @@
 import time
 import os.path
 import memory_access
+import enemies
 
 # TODO: Perform Assertions and Raises, Error handling
 # TODO: Check all return types
@@ -8,11 +9,10 @@ import memory_access
 
 # TODO: Make a list of enemy pointers, each has health, max health, etc
 # TODO: Access target ID to store animations in folder that matches ID
-# TODO: Try global pointers again and get enemy coordinates, subtract global coordinates of player?
 
 class GameAccessor:
     def __init__(self):
-        self.__targeted_enemy_pointer = 0x0
+        self.__targeted_enemy_pointer = 0
         self.reset()
         self.get_memory_values()
 
@@ -28,12 +28,6 @@ class GameAccessor:
         """
         self.__is_paused = False
         self.__gravity = True
-
-        self.__previous_targeted_enemy_pointer = self.__targeted_enemy_pointer
-        self.__targeted_enemy_pointer = 0x0
-        self.__boss_animation_pointer = 0x0
-        self.__boss_health_pointer = 0x0
-        self.__boss_max_health_pointer = 0x0
 
         self.__game_physics_pointer = 0x0
         self.__gravity_pointer = 0x0
@@ -52,6 +46,7 @@ class GameAccessor:
         self.__player_local_z_position_pointer = 0x0
         self.__player_cos_pointer = 0x0
         self.__player_sin_pointer = 0x0
+        self.__enemies : list[enemies.Enemy]
 
     def get_memory_values(self) -> None:
         """
@@ -73,10 +68,8 @@ class GameAccessor:
 
         self.set_world_information()
         self.set_player_information()
-        self.set_boss_information()
 
         os.remove('place_cheat_table_here/DataWritten.txt')
-        os.remove('place_cheat_table_here/TargetPointer.txt')
         os.remove('place_cheat_table_here/WorldChrManPointer.txt')
         os.remove('place_cheat_table_here/PausePointer.txt')
         os.remove('place_cheat_table_here/PlayerDead.txt')
@@ -134,66 +127,6 @@ class GameAccessor:
         """
         self.find_game_physics()
         self.find_world_pointer()
-        self.find_targeted_enemy()
-
-    def set_boss_information(self) -> None:
-        """
-        Locates all essential targeted enemy pointers.
-
-        Args:
-            None
-
-        Returns:
-            None
-        """
-        if self.__targeted_enemy_pointer != 0:
-            # animations
-            offset1 = memory_access.read_memory('eldenring.exe', self.__targeted_enemy_pointer + 0x190)
-            offset2 = memory_access.read_memory('eldenring.exe', offset1 + 0x18)
-            self.__boss_animation_pointer = offset2 + 0x40
-
-            # stats
-            boss = memory_access.read_memory('eldenring.exe', offset1)
-            self.__boss_health_pointer = boss + 0x138
-            self.__boss_max_health_pointer = boss + 0x13c
-        else:
-            self.find_targeted_enemy()
-
-    def get_boss_animation(self) -> int:
-        """
-        Reads boss animation pointer and returns the integer at that location
-
-        Args:
-            None
-
-        Returns:
-            Boss animation number (int)
-        """
-        return memory_access.read_memory_int('eldenring.exe', self.__boss_animation_pointer)
-
-    def get_boss_health(self) -> int:
-        """
-        Reads boss health pointer and returns the integer at that location
-
-        Args:
-            None
-
-        Returns:
-            Boss health (int)
-        """
-        return memory_access.read_memory_int('eldenring.exe', self.__boss_health_pointer)
-
-    def get_boss_max_health(self) -> int:
-        """
-        Reads boss max health and returns the integer at that location
-
-        Args:
-            None
-
-        Returns:
-            Boss max health (int)
-        """
-        return memory_access.read_memory_int('eldenring.exe', self.__boss_max_health_pointer)
 
     def get_player_animation(self) -> int:
         """
@@ -320,7 +253,6 @@ class GameAccessor:
         memory_access.write_memory_float('eldenring.exe', self.__player_local_y_position_pointer, coords[1])
         memory_access.write_memory_float('eldenring.exe', self.__player_local_z_position_pointer, coords[2])
 
-# TODO
     def set_player_rotation(self, cos: float, sin: float) -> None:
         """
         Allows the player to be rotated
@@ -345,27 +277,6 @@ class GameAccessor:
             None
         """
         self.__game_physics_pointer = memory_access.read_cheat_engine_file('PausePointer.txt')
-
-    def find_targeted_enemy(self) -> None:
-        """
-        Reads the file that correlates to the targeted enemy pointer and sets the targeted_enemy_pointer
-
-        Args:
-            None
-
-        Returns:
-            None
-        """
-        potential_pointer = 0
-        with open('place_cheat_table_here/NeedTarget.txt', 'w') as file:
-            file.write('1')
-        while potential_pointer == 0 and potential_pointer != self.__previous_targeted_enemy_pointer:
-            print("Waiting for Target Pointer")
-            time.sleep(1)
-            potential_pointer = memory_access.read_cheat_engine_file('TargetPointer.txt')
-        self.__targeted_enemy_pointer = potential_pointer
-        os.remove('place_cheat_table_here/NeedTarget.txt')
-        os.remove('place_cheat_table_here/TargetFound.txt')
 
     def find_world_pointer(self) -> None:
         """
@@ -417,4 +328,5 @@ class GameAccessor:
             self.__gravity = True
 
 if __name__ == "__main__":
+    game = GameAccessor()
     ...

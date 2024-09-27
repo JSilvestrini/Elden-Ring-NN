@@ -37,6 +37,23 @@ def key_presses(keys: list) -> None:
         pydirectinput.keyUp(i, _pause=False)
         time.sleep(.2)
 
+def key_combos(keys: list) -> None:
+    """
+    Function used to 'press' down multiple keys at the same time
+
+    Args:
+        key: the list of keys to press
+
+    Returns:
+        None
+    """
+    for i in keys:
+        pydirectinput.keyDown(i, _pause=False)
+    time.sleep(.2)
+    for i in keys:
+        pydirectinput.keyUp(i, _pause=False)
+    time.sleep(.2)
+
 def key_press(key: str, t: float) -> None:
     """
     Function used to 'press' key down for period of time
