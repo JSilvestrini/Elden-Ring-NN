@@ -8,78 +8,167 @@ import pymem.pattern
 # TODO: Clean File
 # TODO: Type hinting, some might return None?
 
-def read_memory(_process, _address) -> int:
+def read_memory(_process: str, _address: int) -> int:
+    """
+    Reads the long long in _process at _address
+
+    Args:
+        _process: the process name
+        _address: the address in memory
+
+    Returns:
+        int: the long long value at that location
+    """
     pm = pymem.Pymem(_process)
     memory_value = pm.read_longlong(_address)
     return memory_value
 
-def read_memory_int(_process, _address) -> int:
+def read_memory_int(_process: str, _address: int) -> int:
+    """
+    Reads the int in _process at _address
+
+    Args:
+        _process: the process name
+        _address: the address in memory
+
+    Returns:
+        int: the int value at that location
+    """
     pm = pymem.Pymem(_process)
     memory_value = pm.read_int(_address)
     return memory_value
 
-def read_memory_short(_process, _address) -> int:
+def read_memory_short(_process: str, _address: int) -> int:
+    """
+    Reads the short in _process at _address
+
+    Args:
+        _process: the process name
+        _address: the address in memory
+
+    Returns:
+        int: the short value at that location
+    """
     pm = pymem.Pymem(_process)
     memory_value = pm.read_short(_address)
     return memory_value
 
-def read_memory_float(_process, _address) -> float:
+def read_memory_float(_process: str, _address: int) -> float:
+    """
+    Reads the float in _process at _address
+
+    Args:
+        _process: the process name
+        _address: the address in memory
+
+    Returns:
+        float: the float value at that location
+    """
     pm = pymem.Pymem(_process)
     memory_value = pm.read_float(_address)
     return memory_value
 
-def read_memory_bytes(_process, _address, _len) -> bytes:
+def read_memory_bytes(_process: str, _address: int, _len: int) -> bytes:
+    """
+    Reads the bytes in _process at _address
+
+    Args:
+        _process: the process name
+        _address: the address in memory
+        _len: the number of bytes to read
+
+    Returns:
+        bytes: the bytes at that location
+    """
     pm = pymem.Pymem(_process)
     memory_value = pm.read_bytes(_address, _len)
     return memory_value
 
-def write_memory(_process, _address, _value) -> None:
+def write_memory(_process: str, _address: int, _value: int) -> None:
+    """
+    Writes the long long _value at _address in _process
+
+    Args:
+        _process: the process name
+        _address: the address in memory
+        _value: the value to write
+
+    Returns:
+        None
+    """
     pm = pymem.Pymem(_process)
     pm.write_longlong(_address, _value)
 
-def write_memory_int(_process, _address, _value) -> None:
+def write_memory_int(_process: str, _address: int, _value: int) -> None:
+    """
+    Writes the int _value at _address in _process
+
+    Args:
+        _process: the process name
+        _address: the address in memory
+        _value: the value to write
+
+    Returns:
+        None
+    """
     pm = pymem.Pymem(_process)
     pm.write_int(_address, _value)
 
-def write_memory_short(_process, _address, _value) -> None:
+def write_memory_short(_process: str, _address: int, _value: int) -> None:
+    """
+    Writes the short _value at _address in _process
+
+    Args:
+        _process: the process name
+        _address: the address in memory
+        _value: the value to write
+
+    Returns:
+        None
+    """
     pm = pymem.Pymem(_process)
     pm.write_short(_address, _value)
 
-def write_memory_float(_process, _address, _value) -> None:
+def write_memory_float(_process: str, _address: int, _value: float) -> None:
+    """
+    Writes the float _value at _address in _process
+
+    Args:
+        _process: the process name
+        _address: the address in memory
+        _value: the value to write
+
+    Returns:
+        None
+    """
     pm = pymem.Pymem(_process)
     pm.write_float(_address, _value)
 
-def write_byte(_process, _address, _byte) -> None:
+def write_byte(_process: str, _address: int, _byte: bytes) -> None:
+    """
+    Writes the byte _value at _address in _process
+
+    Args:
+        _process: the process name
+        _address: the address in memory
+        _value: the value to write
+
+    Returns:
+        None
+    """
     pm = pymem.Pymem(_process)
     pm.write_bytes(_address, bytes(_byte), len(bytes(_byte)))
 
-def find_pattern_fast(_process, _pattern, _return_multiple = False) -> int | list:
-    pm = pymem.Pymem(_process)
-    if _return_multiple:
-        modules = list(pm.list_modules())
-        addresses = []
-        for module in modules:
-            a = pymem.pattern.pattern_scan_module(pm.process_handle, module, _pattern)
-            if a:
-                addresses.append(a)
-        return addresses
-    else:
-        module = pymem.process.module_from_name(pm.process_handle, _process)
-        a = pymem.pattern.pattern_scan_module(pm.process_handle, module, _pattern)
-        return a
+def read_cheat_engine_file(_filename: str) -> int:
+    """
+    Reads the file that is provided and returns the address from the file
 
-def find_pattern_single(_process, _pattern) -> int:
-    pm = pymem.Pymem(_process)
-    module = pymem.process.module_from_name(pm.process_handle, _process)
-    a = pymem.pattern.pattern_scan_module(pm.process_handle, module, _pattern)
-    return a
+    Args:
+        _filename: the name of the file to read
 
-def find_pattern_alt(_process, _pattern) -> int:
-    pm = pymem.Pymem(_process)
-    a = pymem.pattern.pattern_scan_all(pm.process_handle, _pattern, return_multiple=False)
-    return a
-
-def read_cheat_engine_file(_filename) -> int:
+    Returns:
+        int: the address that was stored in the file
+    """
     ret_val : int
     if os.path.isfile('place_cheat_table_here/' + _filename):
         with open('place_cheat_table_here/' + _filename, 'r') as file:

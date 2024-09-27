@@ -1,4 +1,4 @@
-import game_access
+from game_access import GameAccessor
 import dxcam
 import numpy
 
@@ -19,9 +19,11 @@ class EldenRing:
         # screenshot bool
         # player dead
         # boss dead
+        # walk_back class (does not need a reset)
         ...
     def reset(self) -> None:
         # reset game_access, reset these stats
+        # return to arena that is selected
         ...
     def action(self, arr: list) -> None:
         # check key bindings in game, perform action based on 1 hot encoded array

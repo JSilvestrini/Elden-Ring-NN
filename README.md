@@ -127,7 +127,7 @@ https://www.nexusmods.com/eldenring/mods/5645?tab=description
 
 ## Documentation
 
-Most of the files included in this repo have documentation with information about the function, the arguments taken, the return type and maybe error and exception information.
+Most of the files included in this repo have documentation with information about the function, the arguments taken, and the return type. Below is the specific use case of the file and the reason that it was written.
 
 #### er_agent.py
 
@@ -137,8 +137,12 @@ Most of the files included in this repo have documentation with information abou
 
 #### game_access.py
 
+This file is used heavily by the environment to retrieve information about the game state. This file relies on memory_access and communication through files with Cheat Engine. It finds pointers to values that are in Elden Ring's memory and stores those pointers so the environment can use the get functions to retrieve the values at those locations. It also has the ability to pause the game (please note that Elden Ring is normally not able to be paused) and to turn off gravity for the player if needed.
+
 #### logger.py
 
 #### memory_access.py
+
+This file was made to easily access pointers and memory addresses that were retrieved from Cheat Engine. This is mainly used inside of the **game_access.py** file to read information about the game state as well as edit information about the game state, like the player location, gravity toggle, and logic pause.
 
 #### webview.py

@@ -6,11 +6,9 @@ import memory_access
 # TODO: Check all return types
 # TODO: Error handling
 
-# TODO: Hardcode some TP Coords into json?
-    # TODO: Soldier of Godrick
-        # local: <-0.9855866432, 5.026652336, 0.9077949524>
-    # TODO: Lionine Misbegotten
-    # TODO: The map is unloaded, perform some hardcoded actions to talk to Gideon, then TP to fog, then drink flask and enter.
+# TODO: Make a list of enemy pointers, each has health, max health, etc
+# TODO: Access target ID to store animations in folder that matches ID
+# TODO: Try global pointers again and get enemy coordinates, subtract global coordinates of player?
 
 class GameAccessor:
     def __init__(self):
@@ -19,6 +17,15 @@ class GameAccessor:
         self.get_memory_values()
 
     def reset(self) -> None:
+        """
+        Resets all the values in the game_accessor after player death or boss death.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         self.__is_paused = False
         self.__gravity = True
 
