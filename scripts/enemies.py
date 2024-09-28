@@ -1,4 +1,4 @@
-import memory_access
+import scripts.memory_access as memory_access
 import struct
 
 class Enemy:
@@ -106,7 +106,6 @@ class Enemy:
                 memory_access.read_memory_float('eldenring.exe', self.__y_position_pointer),
                 memory_access.read_memory_float('eldenring.exe', self.__z_position_pointer)]
 
-# TODO
     def get_id(self) -> int:
         """
         Gets the int ID of the enemy.

@@ -1,19 +1,14 @@
-import memory_access
-from enemies import Enemy
-from player import Player
+import scripts.memory_access as memory_access
+from scripts.enemies import Enemy
+from scripts.player import Player
 import time
 import os.path
 import threading
 
-# TODO: Perform Assertions and Raises, Error handling
-# TODO: Check all return types
-# TODO: Error handling
-
-# TODO: Have certain key presses create the 'NeedTarget' File
-
 class GameAccessor:
     def __init__(self):
         self.__listening = threading.Event()
+        self.__check = threading.Event()
         self.__enemy_listener = threading.Thread(target=self.check_for_enemies)
         self.reset()
 
@@ -34,18 +29,36 @@ class GameAccessor:
         self.__enemy_pointers = []
         self.__player : Player = None
         self.__listening.set()
-        self.__enemy_listener.start()
         self.get_memory_values()
+        self.__enemy_listener.start()
 
     def begin_reset(self) -> None:
         """
-        ...
+        Ensures that the thread that listens for new locked on targets joins before performing a reset
+
+        Args:
+            None
+
+        Returns:
+            None
         """
+        self.off()
+        self.reset()
+
+    def off(self) -> None:
+        """
+        Used to kill the thread without resetting game_access
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        self.__check.clear()
         self.__listening.clear()
         self.__enemy_listener.join()
         print("thread stopped")
-        self.reset()
-
 
     def get_player(self) -> Player:
         """
@@ -81,7 +94,6 @@ class GameAccessor:
         Returns:
             None
         """
-
         with open('place_cheat_table_here/PlayerDead.txt', 'w') as file:
             file.write('1')
 
@@ -92,10 +104,16 @@ class GameAccessor:
         self.set_world_information()
         self.__player = Player(self.__world_pointer)
 
-        os.remove('place_cheat_table_here/DataWritten.txt')
-        os.remove('place_cheat_table_here/WorldChrManPointer.txt')
-        os.remove('place_cheat_table_here/PausePointer.txt')
-        os.remove('place_cheat_table_here/PlayerDead.txt')
+        dir = os.getcwd()
+        if os.path.isfile(dir + '\\place_cheat_table_here\\PlayerDead.txt'):
+            os.remove(dir + '\\place_cheat_table_here\\PlayerDead.txt')
+        time.sleep(.2)
+        if os.path.isfile(dir + '\\place_cheat_table_here\\DataWritten.txt'):
+            os.remove(dir + '\\place_cheat_table_here\\DataWritten.txt')
+        if os.path.isfile(dir + '\\place_cheat_table_here\\WorldChrManPointer.txt'):
+            os.remove(dir + '\\place_cheat_table_here\\WorldChrManPointer.txt')
+        if os.path.isfile(dir + '\\place_cheat_table_here\\PausePointer.txt'):
+            os.remove(dir + '\\place_cheat_table_here\\PausePointer.txt')
 
     def set_world_information(self) -> None:
         """
@@ -154,6 +172,19 @@ class GameAccessor:
 
         self.__is_paused = not self.__is_paused
 
+    def check(self) -> None:
+        """
+        Tells the check_for_enemies thread to look for an enemy
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        if not self.__check.set():
+            self.__check.set()
+
     def check_for_enemies(self) -> None:
         """
         Checks for the enemy file and tries to append it to the enemy list
@@ -165,20 +196,27 @@ class GameAccessor:
             None
         """
         while self.__listening.is_set():
-            potential_pointer = 0
-            with open('place_cheat_table_here/NeedTarget.txt', 'w') as file:
-                file.write('1')
-            while not os.path.isfile('place_cheat_table_here/TargetFound.txt'):
-                time.sleep(0.1)
+            if self.__check.is_set():
+                potential_pointer = 0
+                with open('place_cheat_table_here/NeedTarget.txt', 'w') as file:
+                    file.write('1')
+                while not os.path.isfile('place_cheat_table_here/TargetFound.txt'):
+                    time.sleep(0.1)
 
-            potential_pointer = memory_access.read_cheat_engine_file('TargetPointer.txt')
-            if potential_pointer != 0 and potential_pointer not in self.__enemy_pointers:
-                self.__enemy_pointers.append(potential_pointer)
-                self.__enemies.append(Enemy(potential_pointer))
-            if os.path.isfile('place_cheat_table_here/TargetFound.txt'):
-                os.remove('place_cheat_table_here/NeedTarget.txt')
-                os.remove('place_cheat_table_here/TargetFound.txt')
-                os.remove('place_cheat_table_here/TargetPointer.txt')
+                potential_pointer = memory_access.read_cheat_engine_file('TargetPointer.txt')
+                if potential_pointer not in [None, 0] and potential_pointer not in self.__enemy_pointers:
+                    self.__enemy_pointers.append(potential_pointer)
+                    self.__enemies.append(Enemy(potential_pointer))
+                    self.__check.clear()
+            else:
+                time.sleep(0.1)
+                dir = os.getcwd()
+                if os.path.isfile(dir + '\\place_cheat_table_here\\NeedTarget.txt'):
+                    os.remove(dir + '\\place_cheat_table_here\\NeedTarget.txt')
+                if os.path.isfile(dir + '\\place_cheat_table_here\\TargetFound.txt'):
+                    os.remove(dir + '\\place_cheat_table_here\\TargetFound.txt')
+                if os.path.isfile(dir + '\\place_cheat_table_here\\TargetPointer.txt'):
+                    os.remove(dir + '\\place_cheat_table_here\\TargetPointer.txt')
 
 if __name__ == "__main__":
     ...

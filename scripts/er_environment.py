@@ -37,7 +37,7 @@ class EldenRing:
         # screenshot bool
         # player dead
         # boss (or bosses) dead
-        # walk_back class (does not need a reset)
+        # walk_back function
 
     def action(self, arr: list) -> None:
         # check key bindings in game, perform action based on 1 hot encoded array

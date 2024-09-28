@@ -184,10 +184,13 @@ def read_cheat_engine_file(_filename: str) -> int:
     Returns:
         int: the address that was stored in the file
     """
-    ret_val : int
+    ret_val = None
     if os.path.isfile('place_cheat_table_here/' + _filename):
         with open('place_cheat_table_here/' + _filename, 'r') as file:
-            ret_val = int(file.readline())
+            fval = file.readline()
+            if fval in ['nil', '0', '']:
+                return None
+            ret_val = int(fval)
     return ret_val
 
 if __name__ == "__main__":

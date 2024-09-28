@@ -1,4 +1,4 @@
-import memory_access
+import scripts.memory_access as memory_access
 
 class Player:
     def __init__(self, WorldPointer):

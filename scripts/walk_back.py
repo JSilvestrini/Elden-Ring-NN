@@ -1,14 +1,22 @@
-from er_helper import key_press, key_presses, find_activate_window, enter_boss
+from scripts.er_helper import key_press, key_presses, find_activate_window, enter_boss
 import time
 
 def talk_to_gideon(slots: list) -> None:
     find_activate_window()
     time.sleep(.2)
     key_press('e', 0.2)
+    time.sleep(0.1)
     for i in slots:
         key_presses(['down'] * i)
+        time.sleep(0.05)
         key_press('e', 0.2)
+        time.sleep(0.1)
     time.sleep(8)
+
+def test_func() -> None:
+    find_activate_window()
+    time.sleep(.2)
+    key_press('down', .04)
 
 """
 Below is a list of different walk backs that I have implemented using the Elden Ring Arena Mod.
