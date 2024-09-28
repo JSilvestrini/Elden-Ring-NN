@@ -3,17 +3,18 @@ from enemies import Enemy
 from player import Player
 import time
 import os.path
+import threading
 
 # TODO: Perform Assertions and Raises, Error handling
 # TODO: Check all return types
 # TODO: Error handling
 
-# TODO: Make a list of enemies
-# TODO: Listen for new Enemy Pointers
 # TODO: Have certain key presses create the 'NeedTarget' File
 
 class GameAccessor:
     def __init__(self):
+        self.__listening = threading.Event()
+        self.__enemy_listener = threading.Thread(target=self.check_for_enemies)
         self.reset()
 
     def reset(self) -> None:
@@ -32,10 +33,19 @@ class GameAccessor:
         self.__enemies : list[Enemy] = []
         self.__enemy_pointers = []
         self.__player : Player = None
+        self.__listening.set()
+        self.__enemy_listener.start()
         self.get_memory_values()
 
-    def check_enemies(self) -> None:
-        self.__check_enemies = True
+    def begin_reset(self) -> None:
+        """
+        ...
+        """
+        self.__listening.clear()
+        self.__enemy_listener.join()
+        print("thread stopped")
+        self.reset()
+
 
     def get_player(self) -> Player:
         """
@@ -154,19 +164,21 @@ class GameAccessor:
         Returns:
             None
         """
-        potential_pointer = 0
-        with open('place_cheat_table_here/NeedTarget.txt', 'w') as file:
-            file.write('1')
-        if os.path.isfile('place_cheat_table_here/TargetFound.txt'):
+        while self.__listening.is_set():
+            potential_pointer = 0
+            with open('place_cheat_table_here/NeedTarget.txt', 'w') as file:
+                file.write('1')
+            while not os.path.isfile('place_cheat_table_here/TargetFound.txt'):
+                time.sleep(0.1)
+
             potential_pointer = memory_access.read_cheat_engine_file('TargetPointer.txt')
-        if potential_pointer != 0 and potential_pointer not in self.__enemy_pointers:
-            self.__enemy_pointers.append(potential_pointer)
-            self.__enemies.append(Enemy(potential_pointer))
-        if os.path.isfile('place_cheat_table_here/TargetFound.txt'):
-            os.remove('place_cheat_table_here/NeedTarget.txt')
-            os.remove('place_cheat_table_here/TargetFound.txt')
-            os.remove('place_cheat_table_here/TargetPointer.txt')
+            if potential_pointer != 0 and potential_pointer not in self.__enemy_pointers:
+                self.__enemy_pointers.append(potential_pointer)
+                self.__enemies.append(Enemy(potential_pointer))
+            if os.path.isfile('place_cheat_table_here/TargetFound.txt'):
+                os.remove('place_cheat_table_here/NeedTarget.txt')
+                os.remove('place_cheat_table_here/TargetFound.txt')
+                os.remove('place_cheat_table_here/TargetPointer.txt')
 
 if __name__ == "__main__":
-    game = GameAccessor()
     ...

@@ -24,11 +24,6 @@ local function onTimer(timer)
     io.close(player_dead_file)
     pausegame_t=AOBScanModuleUnique("eldenring.exe","80 BB 28 01 00 00 00 0F 84","+X")
 
-    target_file = io.open("TargetPointer.txt", 'w')
-    tar_ptr = readQword'LastLockOnTarget'
-    target_file:write(tostring(tar_ptr))
-    target_file:close()
-
     world_file = io.open("WorldChrManPointer.txt", 'w')
     world_ptr = getAddress("WorldChrMan")
     world_file:write(tostring(readQword'world_ptr'))
@@ -67,7 +62,7 @@ if t then
 else
   scriptTimers[id] = createTimer()
   t = scriptTimers[id]
-  t.Interval = 1000
+  t.Interval = 20
   t.OnTimer = onTimer
 end
 

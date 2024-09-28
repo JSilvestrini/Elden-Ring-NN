@@ -80,13 +80,8 @@ def grafted_scion() -> None:
     enter_boss()
 
 def godskin_duo() -> None:
-    ...
     talk_to_gideon([2, 28])
     enter_boss()
-    # This will need a rework
-    # The current game access can only find 1 enemy, I will have to make an array
-    # that can hold x pointers and allow the bot to switch between targets
-    # I will also need to supply the network all x enemies and their health/ animations
 
 if __name__ == "__main__":
     soldier_of_godrick()

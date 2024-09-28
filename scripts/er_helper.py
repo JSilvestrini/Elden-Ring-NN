@@ -16,8 +16,8 @@ def find_activate_window() -> None:
     if hwnd:
         win32gui.SetForegroundWindow(hwnd)
         win32gui.SetActiveWindow(hwnd)
-        key_press(']', 0.2)
-        key_press(']', 0.2)
+        key_press(']', 0.12)
+        key_press(']', 0.12)
     else:
         "Window Not Found"
 

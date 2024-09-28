@@ -1,9 +1,11 @@
 import memory_access
+import struct
 
 class Enemy:
     def __init__(self, pointer) -> None:
         self.__pointer = pointer
         self.__id_pointer = 0x0
+        self.__global_id_pointer = 0x0
         self.__health_pointer = 0x0
         self.__max_health_pointer = 0x0
         self.__animation_pointer = 0x0
@@ -37,6 +39,12 @@ class Enemy:
         self.__x_position_pointer = offset4 + 0x70
         self.__y_position_pointer = offset4 + 0x78
         self.__z_position_pointer = offset4 + 0x74
+
+        # id pointers
+        # +28] +124
+        offset5 = memory_access.read_memory('eldenring.exe', self.__pointer + 0x28)
+        self.__id_pointer = offset5 + 0x124
+        self.__global_id_pointer = self.__pointer + 0x74
 
     def get_pointer(self) -> int:
         """
@@ -101,7 +109,7 @@ class Enemy:
 # TODO
     def get_id(self) -> int:
         """
-        Gets the hex ID of the enemy.
+        Gets the int ID of the enemy.
 
         Args:
             None
@@ -110,3 +118,16 @@ class Enemy:
             Int
         """
         return memory_access.read_memory_int('eldenring.exe', self.__id_pointer)
+
+    def get_global_id(self) -> int:
+        """
+        Gets the hex ID of the enemy.
+
+        Args:
+            None
+
+        Returns:
+            Int
+        """
+        two_bytes = memory_access.read_memory_bytes('eldenring.exe', self.__global_id_pointer, 2)
+        return struct.unpack('>H', two_bytes)[0].to_bytes(2, byteorder='little').hex()
