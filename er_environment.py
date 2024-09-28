@@ -1,8 +1,8 @@
-from game_access import GameAccessor
-import er_helper
-from enemies import Enemy
-from player import Player
-import walk_back
+from scripts.game_access import GameAccessor
+from scripts import er_helper
+from scripts.enemies import Enemy
+from scripts.player import Player
+from scripts import walk_back
 import dxcam
 
 class EldenRing:
@@ -13,7 +13,6 @@ class EldenRing:
     def reset(self) -> None:
         # game access
         self.__game.reset()
-
         # player
             # player health
             # player health prev
