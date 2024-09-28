@@ -20,6 +20,10 @@ def find_activate_window() -> None:
     else:
         "Window Not Found"
 
+def client_window_size() -> list:
+    hwnd = win32gui.FindWindow(None, "ELDEN RING™")
+    return win32gui.GetClientRect(hwnd)
+
 def key_presses(keys: list) -> None:
     """
     Function used to 'press' down multiple keys in succession

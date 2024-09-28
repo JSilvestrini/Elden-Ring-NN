@@ -31,6 +31,19 @@ class GameAccessor:
         self.__listening.set()
         self.get_memory_values()
         self.__enemy_listener.start()
+        self.__ready = True
+
+    def is_ready(self) -> bool:
+        """
+        Used to see if reset was complete
+
+        Args:
+            None
+
+        Returns:
+            True if the game accessor is ready to be used
+        """
+        return self.__ready
 
     def begin_reset(self) -> None:
         """
@@ -207,7 +220,6 @@ class GameAccessor:
                 if potential_pointer not in [None, 0] and potential_pointer not in self.__enemy_pointers:
                     self.__enemy_pointers.append(potential_pointer)
                     self.__enemies.append(Enemy(potential_pointer))
-                    self.__check.clear()
             else:
                 time.sleep(0.1)
                 dir = os.getcwd()
@@ -217,6 +229,7 @@ class GameAccessor:
                     os.remove(dir + '\\place_cheat_table_here\\TargetFound.txt')
                 if os.path.isfile(dir + '\\place_cheat_table_here\\TargetPointer.txt'):
                     os.remove(dir + '\\place_cheat_table_here\\TargetPointer.txt')
+            self.__check.clear()
 
 if __name__ == "__main__":
     ...
