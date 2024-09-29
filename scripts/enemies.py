@@ -1,7 +1,11 @@
 import scripts.memory_access as memory_access
 import struct
+import numpy as np
+import scripts.er_helper as er_helper
+import time
+from scripts.player import Player
 
-class Enemy:
+class EnemyAccess:
     def __init__(self, pointer) -> None:
         self.__pointer = pointer
         self.__id_pointer = 0x0
@@ -130,3 +134,56 @@ class Enemy:
         """
         two_bytes = memory_access.read_memory_bytes('eldenring.exe', self.__global_id_pointer, 2)
         return struct.unpack('>H', two_bytes)[0].to_bytes(2, byteorder='little').hex()
+
+# TODO: Add Dead AF Flag
+class Enemy:
+    def __init__(self, enemy_access, player: Player):
+        self.enemy_access = enemy_access
+        self.is_dead = False
+        self.health = self.enemy_access.get_health()
+        self.max_health = self.enemy_access.get_max_health()
+        self.health_prev = self.health
+        self.coords = np.array(self.enemy_access.get_coords())
+        self.coords_prev = self.coords
+        self.animation = self.enemy_access.get_animation()
+        self.animation_list = er_helper.get_animation_files("animation_files/{}".format(self.enemy_access.get_id()))
+        self.animation_list_zero = np.zeros_like(self.animation_list)
+        self.animation_timer = time.time()
+        self.previous_animation = self.animation
+        self.distance_from_player = np.linalg.norm(self.coords - player.coords, axis=0)
+        self.direction_from_player = np.arctan2(self.coords[1] - player.coords[1], self.coords[0] - player.coords[0]) * 180 / np.pi
+        self.is_dead = False
+
+    def encode_animation(self):
+        index = np.where(self.animation_list == self.animation)
+        self.animation_list_zero = np.zeros_like(self.animation_list)
+        self.animation_list_zero[index] = 1
+
+    def update(self, player: Player):
+        self.health_prev = self.health
+        self.coords_prev = self.coords
+        self.previous_animation = self.animation
+
+        self.health = self.enemy_access.get_health()
+        self.max_health = self.enemy_access.get_max_health()
+        self.coords = np.array(self.enemy_access.get_coords())
+        self.animation = self.enemy_access.get_animation()
+        self.is_dead = not (self.health != 0)
+        if self.animation != self.previous_animation:
+            self.animation_timer = time.time()
+            self.encode_animation()
+        self.distance_from_player = np.linalg.norm(self.coords - player.coords, axis=0)
+        self.direction_from_player = np.arctan2(self.coords[1] - player.coords[1], self.coords[0] - player.coords[0]) * 180 / np.pi
+        
+
+    def state(self):
+        enemy_health = self.health / self.max_health
+        enemy_delta_health = (self.health_prev - self.health) / self.max_health
+        enemy_animation = self.animation_list_zero
+        enemy_distance = self.distance_from_player
+        enemy_direction = self.direction_from_player
+        enemy_animation_completion = (self.animation_timer - time.time()) / er_helper.max_time("animation_files/{}".format(self.enemy_access.get_id()), self.animation)
+
+        boss_array = np.array([enemy_health, enemy_delta_health, enemy_distance, enemy_direction, enemy_animation_completion])
+        combined_array = np.concatenate((boss_array, enemy_animation))
+        return combined_array

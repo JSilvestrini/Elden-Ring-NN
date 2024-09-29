@@ -1,6 +1,9 @@
 import scripts.memory_access as memory_access
+import scripts.er_helper as er_helper
+import numpy as np
+import time
 
-class Player:
+class PlayerAccess:
     def __init__(self, WorldPointer):
         self.__pointer = 0x0
         self.__animation_pointer = 0x0
@@ -213,3 +216,60 @@ class Player:
         else:
             memory_access.write_memory_int('eldenring.exe', self.__gravity_pointer, 0)
             self.__gravity = True
+
+# TODO: Document
+# TODO: Add 'Kill Character Flag'
+class Player:
+    def __init__(self, player_access : PlayerAccess):
+        self.player_access = player_access
+        self.health = self.player_access.get_health()
+        self.max_health = self.player_access.get_max_health()
+        self.health_prev = self.health
+        self.stamina = self.player_access.get_stamina()
+        self.max_stamina = self.player_access.get_max_stamina()
+        self.stamina_prev = self.stamina
+        self.fp = self.player_access.get_fp()
+        self.max_fp = self.player_access.get_max_fp()
+        self.prev_fp = self.fp
+        self.coords = np.array(self.player_access.get_coords())
+        self.coords_prev = self.coords
+        self.animation = self.player_access.get_animation()
+        self.animation_list = er_helper.get_animation_files("animation_files/000000")
+        self.animation_list_zero = np.zeros_like(self.animation_list)
+        self.animation_timer = time.time()
+        self.previous_animation = self.animation
+        self.is_dead = False
+
+    def encode_animation(self):
+        index = np.where(self.animation_list == self.animation)
+        self.animation_list_zero = np.zeros_like(self.animation_list)
+        self.animation_list_zero[index] = 1
+
+    def update(self):
+        self.health_prev = self.health
+        self.stamina_prev = self.stamina
+        self.prev_fp = self.fp
+        self.coords_prev = self.coords
+        self.previous_animation = self.animation
+        self.health = self.player_access.get_health()
+        self.stamina = self.player_access.get_stamina()
+        self.fp = self.player_access.get_fp()
+        self.coords = np.array(self.player_access.get_coords())
+        self.animation = self.player_access.get_animation()
+        if self.animation != self.previous_animation:
+            self.animation_timer = time.time()
+            self.encode_animation()
+        self.is_dead = not (self.health != 0)
+
+    def state(self):
+        player_health = self.health / self.max_health
+        player_stamina = self.stamina / self.max_stamina
+        player_fp = self.fp / self.max_fp
+        player_animation = self.animation_list_zero
+        player_delta_health = (self.health_prev - self.health) / self.max_health
+        player_delta_stamina = (self.stamina_prev - self.stamina) / self.max_stamina
+        player_delta_fp = (self.prev_fp - self.fp) / self.max_fp
+        animation_completion = (self.animation_timer - time.time()) / er_helper.max_time("animation_files/000000", self.animation)
+        player_tensor = np.array([player_health, player_delta_health, player_stamina, player_delta_stamina, player_fp, player_delta_fp, animation_completion])
+        player_tensor = np.concatenate((player_tensor, player_animation))
+        return player_tensor

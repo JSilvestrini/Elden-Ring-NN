@@ -1,15 +1,12 @@
 import scripts.memory_access as memory_access
-from scripts.enemies import Enemy
-from scripts.player import Player
+from scripts.enemies import EnemyAccess
+from scripts.player import PlayerAccess
 import time
 import os.path
 import threading
 
 class GameAccessor:
     def __init__(self):
-        self.__listening = threading.Event()
-        self.__check = threading.Event()
-        self.__enemy_listener = threading.Thread(target=self.check_for_enemies)
         self.reset()
 
     def reset(self) -> None:
@@ -22,12 +19,15 @@ class GameAccessor:
         Returns:
             None
         """
+        self.__listening = threading.Event()
+        self.__check = threading.Event()
+        self.__enemy_listener = threading.Thread(target=self.check_for_enemies)
         self.__is_paused = False
         self.__game_physics_pointer = 0x0
         self.__world_pointer = 0x0
-        self.__enemies : list[Enemy] = []
+        self.__enemies : list[EnemyAccess] = []
         self.__enemy_pointers = []
-        self.__player : Player = None
+        self.__player : PlayerAccess = None
         self.__listening.set()
         self.get_memory_values()
         self.__enemy_listener.start()
@@ -73,7 +73,7 @@ class GameAccessor:
         self.__enemy_listener.join()
         print("thread stopped")
 
-    def get_player(self) -> Player:
+    def get_player(self) -> PlayerAccess:
         """
         Returns the player
 
@@ -85,7 +85,7 @@ class GameAccessor:
         """
         return self.__player
 
-    def get_enemies(self) -> list[Enemy]:
+    def get_enemies(self) -> list[EnemyAccess]:
         """
         Returns the enemy list
 
@@ -95,7 +95,7 @@ class GameAccessor:
         Returns:
             Enemy list
         """
-        return self.__enemies
+        return self.__enemy_pointers ,self.__enemies
 
     def get_memory_values(self) -> None:
         """
@@ -115,7 +115,7 @@ class GameAccessor:
             print("Waiting")
 
         self.set_world_information()
-        self.__player = Player(self.__world_pointer)
+        self.__player = PlayerAccess(self.__world_pointer)
 
         dir = os.getcwd()
         if os.path.isfile(dir + '\\place_cheat_table_here\\PlayerDead.txt'):
@@ -214,14 +214,15 @@ class GameAccessor:
                 with open('place_cheat_table_here/NeedTarget.txt', 'w') as file:
                     file.write('1')
                 while not os.path.isfile('place_cheat_table_here/TargetFound.txt'):
-                    time.sleep(0.1)
+                    time.sleep(0.05)
 
                 potential_pointer = memory_access.read_cheat_engine_file('TargetPointer.txt')
                 if potential_pointer not in [None, 0] and potential_pointer not in self.__enemy_pointers:
                     self.__enemy_pointers.append(potential_pointer)
-                    self.__enemies.append(Enemy(potential_pointer))
+                    self.__enemies.append(EnemyAccess(potential_pointer))
+                    self.__check.clear()
             else:
-                time.sleep(0.1)
+                time.sleep(0.05)
                 dir = os.getcwd()
                 if os.path.isfile(dir + '\\place_cheat_table_here\\NeedTarget.txt'):
                     os.remove(dir + '\\place_cheat_table_here\\NeedTarget.txt')
@@ -229,7 +230,6 @@ class GameAccessor:
                     os.remove(dir + '\\place_cheat_table_here\\TargetFound.txt')
                 if os.path.isfile(dir + '\\place_cheat_table_here\\TargetPointer.txt'):
                     os.remove(dir + '\\place_cheat_table_here\\TargetPointer.txt')
-            self.__check.clear()
 
 if __name__ == "__main__":
     ...

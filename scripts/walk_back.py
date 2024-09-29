@@ -38,10 +38,11 @@ Below is a list of different walk backs that I have implemented using the Elden 
 def soldier_of_godrick() -> None:
     talk_to_gideon([3, 3, 0])
     enter_boss()
+    time.sleep(.2)
 
 def leonine_misbegotten() -> None:
     talk_to_gideon([2, 0])
-    enter_boss()
+    enter_boss(1)
 
 def misbegotten_crusader() -> None:
     talk_to_gideon([3, 3, 21])

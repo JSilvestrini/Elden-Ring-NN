@@ -13,3 +13,6 @@ place_cheat_table_here/PausePointer.txt
 place_cheat_table_here/NeedTarget.txt
 place_cheat_table_here/TargetFound.txt
 scripts/__pycache__/
+__pycache__/
+er_model.py
+er_run.py

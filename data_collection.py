@@ -129,13 +129,17 @@ if __name__ == "__main__":
 
     game.check()
 
-    e = game.get_enemies()
-    while len(e) < 1:
+    while len(game.get_enemies()) < 1:
+        e = game.get_enemies()
         print("Checking for enemies")
-        time.sleep(.5)
+        time.sleep(.3)
+        game.check()
+        time.sleep(.2)
+
+    e = game.get_enemies()
 
     print(e[0].get_id())
     #player_listen(game.get_player())
-    #enemy_listen(e[0])
-    #print("Complete")
+    enemy_listen(e[0])
+    print("Complete")
     game.off()
