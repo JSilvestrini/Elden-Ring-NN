@@ -295,7 +295,7 @@ class Player:
         if self.animation != self.previous_animation:
             self.animation_timer = time.time()
             self.encode_animation()
-        self.is_dead = (self.player_access.get_dead()[0] == 1)
+        self.is_dead = (self.player_access.get_dead()[0] == 1) or (self.health <= 0)
 
     def state(self) -> np.ndarray:
         """

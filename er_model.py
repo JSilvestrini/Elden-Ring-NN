@@ -45,6 +45,7 @@ class QTrainer:
         action = torch.tensor(action, dtype = torch.long).to(self.device)
         reward = torch.tensor(reward, dtype = torch.float).to(self.device)
         nextState = torch.tensor(nextState, dtype = torch.float).to(self.device)
+        #print(nextState.shape)
 
         if len(state.shape) == 1:
             state = torch.unsqueeze(state, 0)
