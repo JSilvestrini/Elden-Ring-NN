@@ -4,6 +4,7 @@ import numpy as np
 import scripts.er_helper as er_helper
 import time
 from scripts.player import Player
+from bitstring import BitArray
 
 class EnemyAccess:
     def __init__(self, pointer) -> None:
@@ -16,6 +17,7 @@ class EnemyAccess:
         self.__x_position_pointer = 0x0
         self.__y_position_pointer = 0x0
         self.__z_position_pointer = 0x0
+        self.__is_dead_pointer = 0x0
         self.__set_values()
 
     def __set_values(self) -> None:
@@ -49,6 +51,11 @@ class EnemyAccess:
         offset5 = memory_access.read_memory('eldenring.exe', self.__pointer + 0x28)
         self.__id_pointer = offset5 + 0x124
         self.__global_id_pointer = self.__pointer + 0x74
+
+        #[[self.__pointer + x58]+xC8]+x24, 1 byte
+        offset6 = memory_access.read_memory('eldenring.exe', self.__pointer + 0x58)
+        offset7 = memory_access.read_memory('eldenring.exe', offset6 + 0xc8)
+        self.__is_dead_pointer = offset7 + 0x24
 
     def get_pointer(self) -> int:
         """
@@ -101,8 +108,10 @@ class EnemyAccess:
     def get_coords(self) -> list:
         """
         Reads Enemy coordinate pointers and returns those values
+
         Args:
             None
+
         Returns:
             Enemy coordinates [x, y, z] (list<float>)
         """
@@ -135,7 +144,25 @@ class EnemyAccess:
         two_bytes = memory_access.read_memory_bytes('eldenring.exe', self.__global_id_pointer, 2)
         return struct.unpack('>H', two_bytes)[0].to_bytes(2, byteorder='little').hex()
 
+    def get_dead(self) -> str:
+        """
+        Locates the dead flag on the enemy and returns the value
+
+        Args:
+            None
+
+        Returns:
+            Dead Flag in binary
+        """
+        c = str(memory_access.read_memory_bytes('eldenring.exe', self.__is_dead_pointer, 1))
+        c = '0'+ c[3:-1]
+        h = BitArray(hex=c)
+        return h.bin
+
 # TODO: Add Dead AF Flag
+'''
+can't find bullets through the ID of the enemy?
+'''
 class Enemy:
     def __init__(self, enemy_access, player: Player):
         self.enemy_access = enemy_access
@@ -152,31 +179,56 @@ class Enemy:
         self.previous_animation = self.animation
         self.distance_from_player = np.linalg.norm(self.coords - player.coords, axis=0)
         self.direction_from_player = np.arctan2(self.coords[1] - player.coords[1], self.coords[0] - player.coords[0]) * 180 / np.pi
-        self.is_dead = False
+        self.is_dead = (self.enemy_access.get_dead()[0] == 1)
 
-    def encode_animation(self):
+    def encode_animation(self) -> None:
+        """
+        This locates the animation folder of the enemy and encodes the number of animations into a list of only 0s
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         index = np.where(self.animation_list == self.animation)
         self.animation_list_zero = np.zeros_like(self.animation_list)
         self.animation_list_zero[index] = 1
 
-    def update(self, player: Player):
+    def update(self, player: Player) -> None:
+        """
+        This performs all the updates that are needed during each step of the environment
+
+        Args:
+            Player: This is to find information about the distance and direction of the enemy to the player
+
+        Returns:
+            None
+        """
         self.health_prev = self.health
         self.coords_prev = self.coords
         self.previous_animation = self.animation
 
         self.health = self.enemy_access.get_health()
-        self.max_health = self.enemy_access.get_max_health()
         self.coords = np.array(self.enemy_access.get_coords())
         self.animation = self.enemy_access.get_animation()
-        self.is_dead = not (self.health != 0)
+        self.is_dead = not (self.health > 0)
         if self.animation != self.previous_animation:
             self.animation_timer = time.time()
             self.encode_animation()
         self.distance_from_player = np.linalg.norm(self.coords - player.coords, axis=0)
         self.direction_from_player = np.arctan2(self.coords[1] - player.coords[1], self.coords[0] - player.coords[0]) * 180 / np.pi
-        
 
-    def state(self):
+    def state(self) -> np.ndarray:
+        """
+        This creates an array that describes the state of the enemy
+
+        Args:
+            None
+
+        Returns:
+            Information about the health, change in health, distance, direction, current animation, and animation completion in array form
+        """
         enemy_health = self.health / self.max_health
         enemy_delta_health = (self.health_prev - self.health) / self.max_health
         enemy_animation = self.animation_list_zero

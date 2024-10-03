@@ -2,6 +2,7 @@ import scripts.memory_access as memory_access
 import scripts.er_helper as er_helper
 import numpy as np
 import time
+from bitstring import BitArray
 
 class PlayerAccess:
     def __init__(self, WorldPointer):
@@ -19,6 +20,7 @@ class PlayerAccess:
         self.__cos_pointer = 0x0
         self.__sin_pointer = 0x0
         self.__gravity = True
+        self.__is_dead_pointer = 0x0
         self.reset(WorldPointer)
 
     def reset(self, WorldPointer) -> None:
@@ -35,6 +37,8 @@ class PlayerAccess:
 
         # player stats
         offset1 = memory_access.read_memory('eldenring.exe', self.__pointer)
+        # dead pointer
+        self.__is_dead_pointer = offset1 + 0x1c5
         offset2 = memory_access.read_memory('eldenring.exe', offset1 + 0x190)
         player = memory_access.read_memory('eldenring.exe', offset2)
         self.__health_pointer = player + 0x138
@@ -217,8 +221,22 @@ class PlayerAccess:
             memory_access.write_memory_int('eldenring.exe', self.__gravity_pointer, 0)
             self.__gravity = True
 
+    def get_dead(self) -> str:
+        """
+        Locates the 'dead flag' to check if the player is dead (more reliable than checking health in some cases)
+
+        Args:
+            None
+
+        Returns:
+            The binary form of the flag
+        """
+        c = str(memory_access.read_memory_bytes('eldenring.exe', self.__is_dead_pointer, 1))
+        c = '0'+ c[3:-1]
+        h = BitArray(hex=c)
+        return h.bin
+
 # TODO: Document
-# TODO: Add 'Kill Character Flag'
 class Player:
     def __init__(self, player_access : PlayerAccess):
         self.player_access = player_access
@@ -238,14 +256,32 @@ class Player:
         self.animation_list_zero = np.zeros_like(self.animation_list)
         self.animation_timer = time.time()
         self.previous_animation = self.animation
-        self.is_dead = False
+        self.is_dead = (self.player_access.get_dead()[0] == 1)
 
-    def encode_animation(self):
+    def encode_animation(self) -> None:
+        """
+        This locates the animation folder of the player and encodes the number of animations into a list of only 0s
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         index = np.where(self.animation_list == self.animation)
         self.animation_list_zero = np.zeros_like(self.animation_list)
         self.animation_list_zero[index] = 1
 
-    def update(self):
+    def update(self) -> None:
+        """
+        This performs all the updates that are needed during each step of the environment
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         self.health_prev = self.health
         self.stamina_prev = self.stamina
         self.prev_fp = self.fp
@@ -259,9 +295,18 @@ class Player:
         if self.animation != self.previous_animation:
             self.animation_timer = time.time()
             self.encode_animation()
-        self.is_dead = not (self.health != 0)
+        self.is_dead = (self.player_access.get_dead()[0] == 1)
 
-    def state(self):
+    def state(self) -> np.ndarray:
+        """
+        This creates an array that describes the state of the player
+
+        Args:
+            None
+
+        Returns:
+            Information about the health, change in health, stamina, delta stamina, fp, delta fp, current animation, and animation completion in array form
+        """
         player_health = self.health / self.max_health
         player_stamina = self.stamina / self.max_stamina
         player_fp = self.fp / self.max_fp

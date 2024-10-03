@@ -5,6 +5,9 @@ import time
 import os.path
 import threading
 
+# TODO: Grab event stuff to check for cutscenes
+# TODO: 
+
 class GameAccessor:
     def __init__(self):
         self.reset()

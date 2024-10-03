@@ -50,7 +50,7 @@ class QTrainer:
             state = torch.unsqueeze(state, 0)
             action = torch.unsqueeze(action, 0)
             reward = torch.unsqueeze(reward, 0)
-            nextState = torch.unsqueeze(nextState[0], 0)
+            nextState = torch.unsqueeze(nextState, 0)
             done = (done, )
 
             # get predicted Q values with currrent state

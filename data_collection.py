@@ -123,23 +123,27 @@ def enemy_listen(enemy):
 
 if __name__ == "__main__":
     game = GameAccessor()
-    time.sleep(5)
+    #time.sleep(5)
     #walk_back.soldier_of_godrick()
-    time.sleep(.4)
+    #time.sleep(.4)
 
     game.check()
 
-    while len(game.get_enemies()) < 1:
-        e = game.get_enemies()
+    p, e = game.get_enemies()
+    while len(e) < 1:
+        p, e = game.get_enemies()
         print("Checking for enemies")
         time.sleep(.3)
-        game.check()
-        time.sleep(.2)
 
-    e = game.get_enemies()
+    p, e = game.get_enemies()
+    while (e[0].get_health() > 0):
+        print(e[0].get_dead())
 
-    print(e[0].get_id())
+    #print(e[0].get_id())
     #player_listen(game.get_player())
-    enemy_listen(e[0])
-    print("Complete")
+    #enemy_listen(e[0])
+    #print("Complete")
+    print(e[0].get_dead())
+    print("dead")
+    print(e[0].get_dead())
     game.off()

@@ -16,3 +16,4 @@ scripts/__pycache__/
 __pycache__/
 er_model.py
 er_run.py
+bullet_log.txt

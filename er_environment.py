@@ -7,6 +7,7 @@ import dxcam
 import time
 import numpy as np
 import torch
+from PIL import Image
 
 # TODO: Make game access save previous enemy pointers to ensure old pointer is replaced
 
@@ -41,7 +42,7 @@ action_space = {
 # TODO: Each boss() will keep track of its own stuff through update()
 # TODO: get_enemies needs to return ptr_list, enemy_list
 # TODO: check if ptr is key in dictionary, if not add ptr[i]: enemy(enemy[i])
-# TODO: Make frames 4x smaller each
+# TODO: Make frames 4x smaller each, make them 1 dimension instead of 3
 class EldenRing:
     def __init__(self):
         self.__game = GameAccessor()
@@ -67,7 +68,7 @@ class EldenRing:
         # walk_back function
         time.sleep(1)
         walk_back.leonine_misbegotten()
-        #self.fill_screenshots()
+        self.fill_screenshots()
         self.__game.check()
         time.sleep(.23)
         ptrs, enemies = self.__game.get_enemies()
@@ -100,16 +101,21 @@ class EldenRing:
         for i in self.enemies:
             self.enemies[i].update(self.player)
 
-        #self.screenshot()
+        self.screenshot()
 
     def fill_screenshots(self) -> None:
         for i in range(0, 3):
-            self.frame_stack.append(np.array(self.__camera.grab(region = self.__region)))
+            m = np.array(self.__camera.grab(region = self.__region))
+            im = Image.fromarray(m)
+            self.frame_stack.append(np.array(im.reduce(4)))
 
     def screenshot(self) -> None:
         # screenshot, append to list, pop front if needed, check if other frame
         if self.screenshot_check:
-            self.frame_stack.append(np.array(self.__camera.grab(region = self.__region)))
+            m = np.array(self.__camera.grab(region = self.__region))
+            print(m.shape)
+            im = Image.fromarray(m)
+            self.frame_stack.append(np.array(im.reduce(4)))
             if len(self.frame_stack) > 3:
                 self.frame_stack.pop(0)
         self.screenshot_check = not self.screenshot_check
@@ -123,11 +129,12 @@ class EldenRing:
 
         enemy_tensor = torch.cat(tensor_list, dim = 0)
         enemy_tensor = enemy_tensor.to(self.device)
-        #frame_tensor = torch.tensor(self.frame_stack, dtype=torch.float32).to(self.device)
+        frame_tensor = torch.tensor(self.frame_stack, dtype=torch.float32).to(self.device)
+        frame_tensor = frame_tensor.mean(dim=3)
 
         # Combine tensors and return
-        #combined_tensor = torch.cat([player_tensor.flatten(), enemy_tensor.flatten(), frame_tensor.flatten()], dim=0).to(self.device)
-        combined_tensor = torch.cat([player_tensor.flatten(), enemy_tensor.flatten()], dim=0)
+        combined_tensor = torch.cat([player_tensor.flatten(), enemy_tensor.flatten(), frame_tensor.flatten()], dim=0).to(self.device)
+        #combined_tensor = torch.cat([player_tensor.flatten(), enemy_tensor.flatten()], dim=0)
         return combined_tensor
 
     def rewards(self) -> None:
@@ -150,6 +157,7 @@ class EldenRing:
         return (pd or bd)
 
     def step(self, action):
+        start = time.time()
         # use other functions, check if reset needs to be called
         self.perform_action(action)
         self.updates()
@@ -163,6 +171,7 @@ class EldenRing:
             else:
                 self.reward += 3
 
+        print("FPS: {}".format(1/(time.time()-start)))
         return new_state, self.reward, done
 
 if __name__ == "__main__":
