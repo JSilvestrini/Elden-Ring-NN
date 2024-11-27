@@ -18,7 +18,7 @@
 
 ## Dependencies
 
-#### Python
+### Python
 
 -   streamlit
 -   json
@@ -30,7 +30,7 @@
 -   numpy
 -   ...
 
-#### External
+### External
 
 **[Elden Ring](https://store.steampowered.com/app/1245620/ELDEN_RING/)**
 
@@ -60,43 +60,43 @@ You need at least version 3.10 of CMake to use the file that is included, but yo
 
 Most of the files included in this repo have documentation with information about the function, the arguments taken, and the return type. Below is the specific use case of the file and the reason that it was written.
 
-#### data_collection.py
+### data_collection.py
 
 This file is used to gather information of different bosses and enemies, their animation states, how long the animation takes to complete, and stores it in .json format within the animation_files folder that corresponds to the global ID of the entity.
 
-#### er_agent.py
+### er_agent.py
 
-#### er_environment.py
+### er_environment.py
 
-#### er_helper.py
+### er_helper.py
 
 This file contains some of the random functions that would be needed in multiple files, as of now it focuses the window and can perform keyboard presses.
 
-#### er_model.py
+### er_model.py
 
-#### enemies.py
+### enemies.py
 
 This file keeps track of individual enemies for the situations that a fight contains multiple enemies, like Godskin Duo, the fight with the Leonine Misbegotten and Crucible Knight, and others.
 
-#### game_access.py
+### game_access.py
 
 This file is used heavily by the environment to retrieve information about the game state. This file relies on memory_access and communication through files with Cheat Engine. It finds pointers to values that are in Elden Ring's memory and stores those pointers so the environment can use the get functions to retrieve the values at those locations. It also has the ability to pause the game (please note that Elden Ring is normally not able to be paused).
 
-#### logger.py
+### logger.py
 
-#### memory_access.py
+### memory_access.py
 
 This file was made to easily access pointers and memory addresses that were retrieved from Cheat Engine. This is mainly used inside of the **game_access.py** file to read information about the game state as well as edit information about the game state, like the player location, gravity toggle, and logic pause.
 
-#### player.py
+### player.py
 
 This file keeps track of individual player pointers. It was made since I was in the process of breaking the **game_access.py** file into multiple parts.
 
-#### walk_back.py
+### walk_back.py
 
 This file allows the AI to easily get back to different boss arenas using the Elden Ring Boss Arena mod.
 
-#### webview.py
+### webview.py
 
 <!-- 
 Edit the documentation in this file, check removed files, check dependencies
