@@ -19,9 +19,9 @@ def find_activate_window() -> None:
     if hwnd:
         win32gui.SetForegroundWindow(hwnd)
         win32gui.SetActiveWindow(hwnd)
-        key_presses(['['] * 8)
+        key_presses(['['] * 12)
         time.sleep(.1)
-        key_presses(['['] * 8)
+        key_presses(['['] * 12)
     else:
         "Window Not Found"
 
@@ -83,9 +83,9 @@ def key_presses(keys: list) -> None:
     """
     for i in keys:
         pydirectinput.keyDown(i, _pause=False)
-        time.sleep(0.05)
+        time.sleep(0.08)
         pydirectinput.keyUp(i, _pause=False)
-        time.sleep(0.05)
+        time.sleep(0.08)
 
 def key_combos(keys: list) -> None:
     """
@@ -99,10 +99,10 @@ def key_combos(keys: list) -> None:
     """
     for i in keys:
         pydirectinput.keyDown(i, _pause=False)
-    time.sleep(0.05)
+    time.sleep(0.08)
     for i in keys:
         pydirectinput.keyUp(i, _pause=False)
-    time.sleep(0.05)
+    time.sleep(0.08)
 
 def key_press(key: str, t: float) -> None:
     """
@@ -118,9 +118,9 @@ def key_press(key: str, t: float) -> None:
     pydirectinput.keyDown(key, _pause=False)
     time.sleep(t)
     pydirectinput.keyUp(key, _pause=False)
-    time.sleep(0.05)
+    time.sleep(0.08)
 
-def enter_boss(t: float = 0.5) -> None:
+def enter_boss(t: float = 0.6) -> None:
     """
     General function used to enter the fog wall
 
@@ -131,7 +131,7 @@ def enter_boss(t: float = 0.5) -> None:
         None
     """
     key_press('w', 1)
-    key_press('e', 0.05)
+    key_press('e', 0.08)
     time.sleep(2.5)
     key_press('w', t)
-    key_press('q', 0.05)
+    key_press('q', 0.08)

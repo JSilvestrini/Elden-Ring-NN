@@ -5,6 +5,7 @@ import scripts.er_helper as er_helper
 import time
 from scripts.player import Player
 from bitstring import BitArray
+import threading
 
 class EnemyAccess:
     def __init__(self, pointer) -> None:
@@ -179,7 +180,7 @@ class Enemy:
         self.previous_animation = self.animation
         self.distance_from_player = np.linalg.norm(self.coords - player.coords, axis=0)
         self.direction_from_player = np.arctan2(self.coords[1] - player.coords[1], self.coords[0] - player.coords[0]) * 180 / np.pi
-        self.is_dead = (self.enemy_access.get_dead()[0] == 1)
+        self.is_dead = (self.enemy_access.get_dead()[0] == 1) or not (self.health > 0)
 
     def encode_animation(self) -> None:
         """
@@ -192,7 +193,8 @@ class Enemy:
             None
         """
         index = np.where(self.animation_list == self.animation)
-        self.animation_list_zero = np.zeros_like(self.animation_list)
+        old = np.where(self.animation_list == self.previous_animation)
+        self.animation_list_zero[old] = 0
         self.animation_list_zero[index] = 1
 
     def update(self, player: Player) -> None:

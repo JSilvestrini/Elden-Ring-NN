@@ -256,7 +256,7 @@ class Player:
         self.animation_list_zero = np.zeros_like(self.animation_list)
         self.animation_timer = time.time()
         self.previous_animation = self.animation
-        self.is_dead = (self.player_access.get_dead()[0] == 1)
+        self.is_dead = (self.player_access.get_dead()[0] == 1) or (not (self.health > 0))
 
     def encode_animation(self) -> None:
         """
@@ -269,7 +269,8 @@ class Player:
             None
         """
         index = np.where(self.animation_list == self.animation)
-        self.animation_list_zero = np.zeros_like(self.animation_list)
+        old = np.where(self.animation_list == self.previous_animation)
+        self.animation_list_zero[old] = 0
         self.animation_list_zero[index] = 1
 
     def update(self) -> None:
@@ -282,6 +283,7 @@ class Player:
         Returns:
             None
         """
+        print(f"WITHIN CLASS: {self.health}")
         self.health_prev = self.health
         self.stamina_prev = self.stamina
         self.prev_fp = self.fp
@@ -295,7 +297,8 @@ class Player:
         if self.animation != self.previous_animation:
             self.animation_timer = time.time()
             self.encode_animation()
-        self.is_dead = (self.player_access.get_dead()[0] == 1) or (self.health <= 0)
+        #((self.player_access.get_dead()[0] == 1) or 
+        self.is_dead = (not self.health > 0)
 
     def state(self) -> np.ndarray:
         """
