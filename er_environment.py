@@ -1,4 +1,4 @@
-from scripts.game_access import GameAccessor
+from scripts.old_game_access import GameAccessor
 from scripts import er_helper
 from scripts.enemies import EnemyAccess, Enemy
 from scripts.player import PlayerAccess, Player
@@ -10,6 +10,27 @@ import torch
 from PIL import Image
 
 # TODO: Make game access save previous enemy pointers to ensure old pointer is replaced
+# TODO: Make like Mario Environment
+# TODO: Simple and Complex Action_space
+# TODO: Try to remove cheat engine
+# TODO: Fix memory access on Player and Enemy Access (The double wrapper breaks)
+# TODO: Change DXCam to Something else, DXCam blows
+# TODO: Check Walk_back functions
+# TODO: Check time to press keys, maybe implement the key cleaning like in Mario
+# TODO: Get moving on Streamlit or whatever
+# TODO: Turn the scripts folder into a class or something with a BETTER __init__ file
+# TODO: Fix Agent File
+# TODO: Begin creating logs formats
+# TODO: Remove most ground-truth elements, full image based CNN
+    # TODO: Create ground-truth version for training for a different PPO
+# TODO: Create more animation stuff, save in csv format or something instead of json
+    # TODO: Create sqlite database to store information for data collection, csv for simple collection
+    # TODO: Check arena images, map to coordinates, live drawing functions for data viewing and analysis
+# TODO: Take animation_files off the Github, 
+# TODO: Change the readme files if I can remove cheat engine completely 
+#   (Maybe I can learn to do tp as well to remove walkback function?)
+# TODO: Check out ctypes for pattern finding since pymem can't locate patterns
+# TODO: Check out PyQT6 or PySide6 for making the GUI instead of Streamlit
 
 action_space = {
     0: ['w'],
@@ -38,26 +59,21 @@ action_space = {
     23: ['r'],
 }
 
-# TODO: Boss as dictionary, each entry is ptr: boss()
-# TODO: Each boss() will keep track of its own stuff through update()
-# TODO: get_enemies needs to return ptr_list, enemy_list
-# TODO: check if ptr is key in dictionary, if not add ptr[i]: enemy(enemy[i])
-# TODO: Make frames 4x smaller each, make them 1 dimension instead of 3
 class EldenRing:
     def __init__(self):
         self.__game = GameAccessor()
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu") # might be redundant later
         self.__camera = dxcam.create()
         left, top, right, bottom = er_helper.client_window_size()
         # Thi small offset is for a 4k monitor, might be different for others
-        self.__region = (15 + left, 60 + top, 15 + right, 60 + bottom)
+        self.__region = (7 + left, 44 + top, 7 + right, 44 + bottom)
         self.reset()
 
     def reset(self) -> None:
         # player
-        if self.__game.is_ready():
-            self.__player_access = self.__game.get_player()
-            self.player = Player(self.__player_access)
+        while not self.__game.is_ready():
+            time.sleep(0.01)
+        self.__player_access = self.__game.get_player()
+        self.player = Player(self.__player_access)
         # list of enemies
         self.enemies = {}
         # reward
@@ -65,19 +81,20 @@ class EldenRing:
         # frame queue
         self.frame_stack = []
         # screenshot bool
-        self.screenshot_check = False
+        self.screenshot_check = True
         # walk_back function
         time.sleep(1)
         walk_back.leonine_misbegotten()
-        #self.fill_screenshots()
+        self.fill_screenshots()
         self.__game.check()
-        time.sleep(.23)
-        ptrs, enemies = self.__game.get_enemies()
-        for i, j in zip(ptrs, enemies):
-            self.enemies[i] = Enemy(j, self.player)
+        time.sleep(.3)
+        
         self.begin_time = time.time()
+        self.updates()
 
     def full_reset(self) -> None:
+        # rejoin the thread
+        print("updater thread stopped")
         time.sleep(15)
         self.__game.begin_reset()
         self.reset()
@@ -101,19 +118,18 @@ class EldenRing:
         ptrs, enemies = self.__game.get_enemies()
         for i, j in zip(ptrs, enemies):
             if i not in self.enemies:
-                self.enemies[i] = Enemy(j)
+                self.enemies[i] = Enemy(j, self.player)
 
         for i in self.enemies:
             self.enemies[i].update(self.player)
 
-        #self.screenshot() /////////////////////////////////////
+        self.screenshot() #/////////////////////////////////////
 
     def fill_screenshots(self) -> None:
         # removed the for loop since dxcam returns none if the frame does not change
         m = np.array(self.__camera.grab(region = self.__region))
         im = Image.fromarray(m)
         im = im.reduce(8)
-        im.save('small-screenshot.png')
         im = np.array(im)
         self.frame_stack.append(im)
         self.frame_stack.append(im)
@@ -122,28 +138,31 @@ class EldenRing:
     def screenshot(self) -> None:
         # screenshot, append to list, pop front if needed, check if other frame
         if self.screenshot_check:
-            m = np.array(self.__camera.grab(region = self.__region))
-            im = Image.fromarray(m)
-            self.frame_stack.append(np.array(im.reduce(8)))
-            if len(self.frame_stack) > 3:
-                self.frame_stack.pop(0)
+            try:
+                m = np.array(self.__camera.grab(region = self.__region))
+                im = Image.fromarray(m)
+                self.frame_stack.append(np.array(im.reduce(8)))
+                if len(self.frame_stack) > 3:
+                    self.frame_stack.pop(0)
+            except:
+                return
         self.screenshot_check = not self.screenshot_check
 
     def get_state(self):
-        player_tensor = torch.tensor(self.player.state()).to(self.device)
+        player_tensor = torch.tensor(self.player.state())
 
         tensor_list = []
         for i in self.enemies:
-            tensor_list.append(torch.tensor(self.enemies[i].state()).to(self.device))
+            tensor_list.append(torch.tensor(self.enemies[i].state()))
 
         enemy_tensor = torch.cat(tensor_list, dim = 0)
-        enemy_tensor = enemy_tensor.to(self.device)
-        #frame_tensor = torch.tensor(self.frame_stack, dtype=torch.float32).to(self.device) ////////////////////////////
-        #frame_tensor = frame_tensor.mean(dim=3)                                           /////////////////////////////
+        enemy_tensor = enemy_tensor
+        frame_tensor = torch.tensor(self.frame_stack, dtype=torch.float32) #////////////////////////////
+        frame_tensor = frame_tensor.mean(dim=3)                                           #/////////////////////////////
 
         # Combine tensors and return
-        #combined_tensor = torch.cat([player_tensor.flatten(), enemy_tensor.flatten(), frame_tensor.flatten()], dim=0).to(self.device) //////////////////
-        combined_tensor = torch.cat([player_tensor.flatten(), enemy_tensor.flatten()], dim=0)
+        combined_tensor = torch.cat([player_tensor.flatten(), enemy_tensor.flatten(), frame_tensor.flatten()], dim=0)# //////////////////
+        #combined_tensor = torch.cat([player_tensor.flatten(), enemy_tensor.flatten()], dim=0)
         return combined_tensor
 
     def rewards(self) -> None:
@@ -163,16 +182,21 @@ class EldenRing:
             if not self.enemies[i].is_dead:
                 bd = False
                 break
+            else:
+                self.enemies[i].dead()
+        #print("Player Dead: {}, Enemy dead: {}".format(pd, bd))
         return (pd or bd)
 
     def step(self, action):
-        #start = time.time()
+        start = time.time()
         # use other functions, check if reset needs to be called
         self.perform_action(action)
         self.updates()
         self.rewards()
         new_state = self.get_state()
         done = self.done()
+        print(f"PLAYER HEALTH: {self.player.health}")
+        print(f"PLAYER DEAD: {self.player.is_dead}")
 
         if done:
             if self.player.is_dead:
@@ -180,7 +204,7 @@ class EldenRing:
             else:
                 self.reward += 3
 
-        #print("FPS: {}".format(1/(time.time()-start)))
+        print("FPS: {}".format(1/(time.time()-start)))
         return new_state, self.reward, done
 
 if __name__ == "__main__":
