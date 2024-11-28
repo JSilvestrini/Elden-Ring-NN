@@ -1,7 +1,5 @@
-from scripts.old_game_access import GameAccessor
+from scripts.game_accessor import GameAccessor
 from scripts import er_helper
-from scripts.enemies import EnemyAccess, Enemy
-from scripts.player import PlayerAccess, Player
 from scripts import walk_back
 import dxcam
 import time
@@ -9,11 +7,8 @@ import numpy as np
 import torch
 from PIL import Image
 
-# TODO: Make game access save previous enemy pointers to ensure old pointer is replaced
 # TODO: Make like Mario Environment
 # TODO: Simple and Complex Action_space
-# TODO: Try to remove cheat engine
-# TODO: Fix memory access on Player and Enemy Access (The double wrapper breaks)
 # TODO: Change DXCam to Something else, DXCam blows
 # TODO: Check Walk_back functions
 # TODO: Check time to press keys, maybe implement the key cleaning like in Mario
@@ -22,14 +17,10 @@ from PIL import Image
 # TODO: Fix Agent File
 # TODO: Begin creating logs formats
 # TODO: Remove most ground-truth elements, full image based CNN
-    # TODO: Create ground-truth version for training for a different PPO
+    # TODO: Create ground-truth version for training for a different PPO?
 # TODO: Create more animation stuff, save in csv format or something instead of json
     # TODO: Create sqlite database to store information for data collection, csv for simple collection
     # TODO: Check arena images, map to coordinates, live drawing functions for data viewing and analysis
-# TODO: Take animation_files off the Github, 
-# TODO: Change the readme files if I can remove cheat engine completely 
-#   (Maybe I can learn to do tp as well to remove walkback function?)
-# TODO: Check out ctypes for pattern finding since pymem can't locate patterns
 # TODO: Check out PyQT6 or PySide6 for making the GUI instead of Streamlit
 
 action_space = {

@@ -4,7 +4,7 @@ The following repository contains code that creates a gym-like environment that 
 
 This specific implementation is currently using CNN related policies, though a ground truth version may be made in the future to hopefully create a performance (in terms of computations) increase.
 
-Once the environment is finished and the agent begins training, the repo will be updated with some performance statistics and other tools for watching the training as it runs.
+Once the environment is finished and the agent begins training, the repo will be updated with some performance statistics and other tools for watching the training process as it runs.
 
 ## Table of Contents
 

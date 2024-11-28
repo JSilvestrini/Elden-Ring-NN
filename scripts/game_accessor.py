@@ -4,7 +4,6 @@ import pymem
 import pymem.process
 from bitstring import BitArray
 import struct
-import time
 
 bases = {
     "WorldChrMan": {"aob": "48 8B 05 00 00 00 00 48 85 C0 74 0F 48 39 88", "mask": "xxx????xxxxxxxx", "offset": 3, "additional": 7},
@@ -258,10 +257,5 @@ class GameAccessor:
             dead.append(c > 0)
         return dead
 
-
 if __name__ == "__main__":
-    pm = pymem.Pymem("eldenring.exe")
-    game = GameAccessor()
-    game.find_bases()
-    game.find_player_addrs()
-    game.find_enemies()
+    ...

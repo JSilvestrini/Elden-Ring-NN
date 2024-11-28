@@ -1,12 +1,5 @@
-import os.path
 import pymem
 import pymem.process
-from typing import TypeAlias
-
-# TODO: Create Documentation
-# TODO: What Kind of Errors from pymem?
-# TODO: Clean File
-# TODO: Type hinting, some might return None?
 
 def read_memory(_process: pymem.Pymem, _address: int) -> int:
     """
