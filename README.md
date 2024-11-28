@@ -1,5 +1,11 @@
 # Elden-Ring-NN
 
+The following repository contains code that creates a gym-like environment that can be used with stable-baselines3 PPO algorithms, and it aims to compete with previous gym environments for souls games. 
+
+This specific implementation is currently using CNN related policies, though a ground truth version may be made in the future to hopefully create a performance (in terms of computations) increase.
+
+Once the environment is finished and the agent begins training, the repo will be updated with some performance statistics and other tools for watching the training as it runs.
+
 ## Table of Contents
 
 -   [**Dependencies**](#dependencies)
@@ -15,6 +21,7 @@
     -   [**logger.py**](#loggerpy)
     -   [**memory_access.py**](#memory_accesspy)
     -   [**webview.py**](#webviewpy)
+-   [**References**](#references)
 
 ## Dependencies
 
@@ -98,8 +105,23 @@ This file allows the AI to easily get back to different boss arenas using the El
 
 ### webview.py
 
+## References
+
+**[Elden Ring FPS](https://github.com/Dasaav-dsv/erfps/tree/master)**
+
+This repository, along with the Hexington Cheat Engine table, gave information over where to find pointers and what AOB to try and search for within the main module. Once I noticed that pymem was failing to find patterns, this repo was the inspiration for utilizing C++ with Python to create a (semi) efficient AOB scanner, though no code was used from the AOB files that are available.
+
+**[SoulsGym](https://github.com/amacati/SoulsGym/tree/master)**
+
+This repository contains a goldmine of information, and pointed me towards one of the most important reference (Elden Ring FPS). While no code was directly used from this repo, it was the original inspiration for creating an Elden Ring environment and using visual information rather than ground truth information.
+
+**[Hexington Cheat Engine](https://www.nexusmods.com/eldenring/mods/48)**
+
+This cheat table contains all AOB searches that I used, as well as information on other locations within memory that I could have never found myself. I used the AOB patterns as well as a modified version of their NPC Selector algorithm that was used to populate a table (in my case I used it to find the proper enemies to track).
+
+This table was an invaluable resource.
 <!-- 
 Edit the documentation in this file, check removed files, check dependencies
 
 
---> 
+-->
