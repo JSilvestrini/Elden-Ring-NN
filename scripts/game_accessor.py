@@ -2,8 +2,8 @@ import memory_access as mm
 from build import AOBScanner
 import pymem
 import pymem.process
-from bitstring import BitArray
 import struct
+import time
 
 bases = {
     "WorldChrMan": {"aob": "48 8B 05 00 00 00 00 48 85 C0 74 0F 48 39 88", "mask": "xxx????xxxxxxxx", "offset": 3, "additional": 7},
@@ -55,6 +55,9 @@ class GameAccessor:
         self.__is_paused = False
         self.__gravity = True
         self.enemies = {}
+        self.find_bases()
+        self.find_player_addrs()
+        self.find_enemies()
 
     def find_bases(self) -> None:
         """
@@ -69,14 +72,14 @@ class GameAccessor:
         for key in bases.keys():
             pattern = [int(x, 16) for x in bases[key]["aob"].split(" ")]
             mask = bases[key]["mask"]
-            addr = AOBScanner.FindPattern(self.__process_id, 'eldenring.exe', self.__process_base, pattern, mask, 0, 0)
+            addr = AOBScanner.AOBScan(self.__process_id, 'eldenring.exe', self.__process_base, pattern, mask, 0, 0)
             offset = mm.read_memory_int(self.__process, addr + bases[key]["offset"])
             address = mm.read_memory(self.__process, addr + offset + bases[key]["additional"])
             bases[key]["address"] = address
 
         pattern = [int(x, 16) for x in "80 BB 28 01 00 00 00 0F 84".split()]
         mask = "xxxxxxxxx"
-        self.__physics_pointer = AOBScanner.FindPattern(self.__process_id, 'eldenring.exe', self.__process_base, pattern, mask, 0, 0)
+        self.__physics_pointer = AOBScanner.AOBScan(self.__process_id, 'eldenring.exe', self.__process_base, pattern, mask, 0, 0)
 
     def find_player_addrs(self) -> None:
         """
@@ -97,10 +100,7 @@ class GameAccessor:
             player_addrs_loc[key]["address"] = addr + offsets[-1]
 
     def get_player_dead(self) -> bool:
-        c = str(mm.read_memory_bytes(self.__process, player_addrs_loc["playerDead"]["address"], 1))
-        c = '0'+ c[3:-1]
-        h = BitArray(hex=c)
-        return h.bin
+        return self.get_player_health() <= 0
 
     def get_player_health(self) -> int:
         return mm.read_memory_int(self.__process, player_addrs_loc["playerHealth"]["address"])
@@ -193,7 +193,7 @@ class GameAccessor:
             gid = int(struct.unpack('>H', tb)[0].to_bytes(2, byteorder='little').hex(), 16)
 
             if gid == 0xB026:
-                print("Found Enemy")
+                #print("Found Enemy")
                 self.find_enemy_addrs(addr)
                 return
 
@@ -205,7 +205,7 @@ class GameAccessor:
             for offset in range(len(offsets) - 1):
                 addr = mm.read_memory(self.__process, addr + offsets[offset])
             self.enemies[base][key] = addr + offsets[-1]
-            print(f"Found {key}: {hex(addr + offsets[-1])}")
+            #print(f"Found {key}: {hex(addr + offsets[-1])}")
 
     def get_enemy_health(self) -> list:
         health = []

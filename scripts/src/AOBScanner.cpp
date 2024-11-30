@@ -20,8 +20,8 @@
  *
  * @return Pointer of the pattern found, 0 otherwise.
  */
-static intptr_t FindPattern(int pid, const char* moduleName, intptr_t processAddress, const std::vector<uint8_t>& lpPattern, const char* pszMask, intptr_t offset, intptr_t resultUsage) {
-    DWORD64 processID = (DWORD64)pid;
+static intptr_t AOBScan(int pid, const char* moduleName, intptr_t processAddress, const std::vector<uint8_t>& lpPattern, const char* pszMask, intptr_t offset, intptr_t resultUsage) {
+    DWORD processID = (DWORD)pid;
     DWORD64 baseAddress = (DWORD64)processAddress;
     intptr_t offsetAddress = processAddress - baseAddress;
     HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, processID);
@@ -50,7 +50,7 @@ static intptr_t FindPattern(int pid, const char* moduleName, intptr_t processAdd
                 if (lastSlash != nullptr) {
                     // Compare the filename part
                     if (wcscmp(lastSlash + 1, wideModuleName) == 0) {
-                        std::cout << "Found module " << moduleName << std::endl;
+                        //std::cout << "Found module " << moduleName << std::endl;
                         break;
                     }
                 }
@@ -85,7 +85,7 @@ static intptr_t FindPattern(int pid, const char* moduleName, intptr_t processAdd
             return 0;
         }
 
-        std::cout << "Read " << bytesRead << " bytes" << std::endl;
+        //std::cout << "Read " << bytesRead << " bytes" << std::endl;
 
         // Build vectored pattern..
         std::vector<std::pair<unsigned char, bool>> pattern;
@@ -126,72 +126,6 @@ static intptr_t FindPattern(int pid, const char* moduleName, intptr_t processAdd
     return 0;
 }
 
-static intptr_t AOBScan(int pid, const std::vector<uint8_t>& pattern, const char* mask, const char* patternTest) {
-    DWORD64 processID = (DWORD64)pid;
-    //DWORD64 baseAddress = (DWORD64)processAddress;
-    //intptr_t offsetAddress = processAddress - baseAddress;
-    HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, processID);
-
-    // Ensures that Elden Ring is running
-    if (!hProcess) {
-        std::cout << "Failed to open process" << std::endl;
-        return 0;
-    }
-
-    HMODULE hMods[1024];
-    DWORD cbNeeded;
-
-    // Find the base module for the game
-    if (EnumProcessModules(hProcess, hMods, sizeof(hMods), &cbNeeded)) {
-        std::cout << "Found Modules" << std::endl;
-    }
-
-    // Get the size and base address of the module (the base address is not used in this case)
-    MODULEINFO modInfo = {0};
-    DWORD64 moduleBaseAddress;
-    DWORD64 moduleSize;
-    SIZE_T bytesRead = 0;
-
-    if (GetModuleInformation(hProcess, hMods[0], &modInfo, sizeof(modInfo))) {
-        moduleBaseAddress = (DWORD64)modInfo.lpBaseOfDll;
-        moduleSize = modInfo.SizeOfImage;
-    }
-
-    DWORD oldProtect;
-
-    std::cout << std::hex << moduleBaseAddress << std::endl;
-
-    if (moduleBaseAddress) {
-        std::vector<byte> data(moduleSize);
-
-        if (VirtualProtectEx(hProcess, (LPVOID)(moduleBaseAddress), moduleSize, PAGE_EXECUTE_READWRITE, &oldProtect) == 0) {
-            std::cout << "Error: " << GetLastError() << std::endl;
-            std::cout << "Failed to protect memory" << std::endl;
-            return 0;
-        }
-
-        if (ReadProcessMemory(hProcess, (LPVOID)(moduleBaseAddress), data.data(), moduleSize, &bytesRead) == 0) {
-            std::cout << "Error: " << GetLastError() << std::endl;
-            std::cout << "Failed to read process memory" << std::endl;
-            VirtualProtectEx(hProcess, (LPVOID)(moduleBaseAddress), moduleSize, oldProtect, &oldProtect);
-            CloseHandle(hProcess);
-            return 0;
-        }
-    }
-
-    if (bytesRead > 0) {
-        std::cout << "Read " << bytesRead << " bytes" << std::endl;
-        return bytesRead;
-    }
-
-    VirtualProtectEx(hProcess, (LPVOID)(moduleBaseAddress), moduleSize, oldProtect, &oldProtect);
-    CloseHandle(hProcess);
-
-    return 0;
-
-}
-
 PYBIND11_MODULE(AOBScanner, m) {
-    m.def("FindPattern", &FindPattern);
     m.def("AOBScan", &AOBScan);
 }
