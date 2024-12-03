@@ -194,8 +194,15 @@ class GameAccessor:
         self.__is_paused = not self.__is_paused
 
     def find_enemies(self, ids) -> None:
-        # print(f"FINDING ENEMIES: {ids}")
+        #print(f"FINDING ENEMIES: {ids}")
         self.enemies = {} # remove old enemies incase there is a phase 2
+
+        pattern = [int(x, 16) for x in bases["WorldChrManAlt"]["aob"].split(" ")]
+        mask = bases["WorldChrManAlt"]["mask"]
+        addr = AOBScanner.AOBScan(self.__process_id, 'eldenring.exe', self.__process_base, pattern, mask, 0, 0)
+        offset = mm.read_memory_int(self.__process, addr + bases["WorldChrManAlt"]["offset"])
+        address = mm.read_memory(self.__process, addr + offset + bases["WorldChrManAlt"]["additional"])
+        bases["WorldChrManAlt"]["address"] = address
 
         p = bases["WorldChrManAlt"]["address"]
         begin = mm.read_memory(self.__process, p + 0x1f1b8)
@@ -203,12 +210,12 @@ class GameAccessor:
         characters = (end - begin) // 8
 
         for i in range(characters):
-            # print(f"Scanning Character {i}")
+            #print(f"Scanning Character {i}")
             addr = mm.read_memory(self.__process, begin + i * 8)
             tb = mm.read_memory_bytes(self.__process, addr + 0x74, 2)
             gid = int(struct.unpack('>H', tb)[0].to_bytes(2, byteorder='little').hex(), 16)
 
-            # print(f"Found GID: {hex(gid)}")
+            #print(f"Found GID: {hex(gid)}")
             if gid in ids:
                 #print("Found Enemy")
                 self.find_enemy_addrs(addr)

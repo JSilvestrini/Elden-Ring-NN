@@ -146,7 +146,7 @@ class EldenRing(gymnasium.Env):
         self.__game.reset()
 
     def reset(self, seed=0, options=0) -> None:
-        #self.__game.reset()
+        self.__game.reset()
 
         if self.games > 0:
             print(f"Actions per Second: {self.time_step / (self.end_time - self.begin_time)}")
@@ -163,7 +163,8 @@ class EldenRing(gymnasium.Env):
         while self.__game.loading_state():
             time.sleep(0.2)
 
-        time.sleep(2)
+        # wait for stand up animation to finish after respawn
+        time.sleep(4)
 
         self.reward = 0
         self.time_step = 0
@@ -178,6 +179,7 @@ class EldenRing(gymnasium.Env):
         time.sleep(1)
         er_helper.enter_boss()
 
+        self.__game.clean()
         while self.__game.enemies == {}:
             time.sleep(0.02)
             self.__game.find_enemies(enemy_id.copy())
