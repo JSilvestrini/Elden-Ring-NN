@@ -143,8 +143,11 @@ class EldenRing(gymnasium.Env):
         self.time_step = 0
         self.begin_time = 0
         self.end_time = 0
+        self.__game.reset()
 
     def reset(self, seed=0, options=0) -> None:
+        #self.__game.reset()
+
         if self.games > 0:
             print(f"Actions per Second: {self.time_step / (self.end_time - self.begin_time)}")
 
@@ -172,12 +175,13 @@ class EldenRing(gymnasium.Env):
         while self.__game.loading_state():
             time.sleep(0.2)
 
-        self.__game.reset()
-
         time.sleep(1)
         er_helper.enter_boss()
 
-        self.__game.find_enemies(enemy_id)
+        while self.__game.enemies == {}:
+            time.sleep(0.02)
+            self.__game.find_enemies(enemy_id.copy())
+
         self.screenshot()
         self.begin_time = time.time()
         # used for rewards
@@ -321,12 +325,23 @@ class EldenRing(gymnasium.Env):
         if done or truncated:
             er_helper.clean_keys()
             self.end_time = time.time()
-
+            #print(f"Done: {done}, Truncated: {truncated}")
+            #print(f"Player Health: {self.__game.get_player_health()}")
+            #print(f"Time Elapsed: {self.end_time - self.begin_time}")
+            #print(f"Enemy Health: {self.__game.get_enemy_health()}")
+            #print(f"Enemy Information: {self.__game.enemies}")
 
         return self.state(), self.reward, done, truncated, {}
 
 if __name__ == "__main__":
     er = EldenRing()
-    er.screenshot()
-    m = er.state()
-    print(m.shape)
+    er.reset()
+
+    game = GameAccessor()
+    game.kill_player()
+    er.step(0)
+
+    er.reset()
+
+    game.kill_player()
+    er.step(0)

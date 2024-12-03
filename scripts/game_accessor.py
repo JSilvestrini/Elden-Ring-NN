@@ -52,15 +52,18 @@ class GameAccessor:
         self.__process = pymem.Pymem("eldenring.exe")
         self.__process_id = self.__process.process_id
         self.__process_base = self.__process.base_address
+        self.__is_paused = False
+        self.__gravity = True
         self.reset()
 
     def reset(self) -> None:
         self.__physics_pointer = 0x0
-        self.__is_paused = False
-        self.__gravity = True
         self.enemies = {}
         self.find_bases()
         self.find_player_addrs()
+
+    def clean(self) -> None:
+        self.enemies = {}
 
     def find_bases(self) -> None:
         """
@@ -191,22 +194,28 @@ class GameAccessor:
         self.__is_paused = not self.__is_paused
 
     def find_enemies(self, ids) -> None:
+        # print(f"FINDING ENEMIES: {ids}")
         self.enemies = {} # remove old enemies incase there is a phase 2
+
         p = bases["WorldChrManAlt"]["address"]
         begin = mm.read_memory(self.__process, p + 0x1f1b8)
         end = mm.read_memory(self.__process, p + 0x1f1c0)
         characters = (end - begin) // 8
 
         for i in range(characters):
+            # print(f"Scanning Character {i}")
             addr = mm.read_memory(self.__process, begin + i * 8)
             tb = mm.read_memory_bytes(self.__process, addr + 0x74, 2)
             gid = int(struct.unpack('>H', tb)[0].to_bytes(2, byteorder='little').hex(), 16)
 
+            # print(f"Found GID: {hex(gid)}")
             if gid in ids:
                 #print("Found Enemy")
                 self.find_enemy_addrs(addr)
                 ids.pop(ids.index(gid))
-                continue
+
+            if len(ids) == 0:
+                break
 
     def find_enemy_addrs(self, base) -> None:
         self.enemies[base] = {}
