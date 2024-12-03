@@ -30,7 +30,7 @@ Once the environment is finished and the agent begins training, the repo will be
 -   streamlit
 -   json
 -   pymem
--   mss
+-   dxcam
 -   pybind11
 -   stable_baselines3
 -   pytorch
@@ -55,7 +55,7 @@ You need at least version 3.10 of CMake to use the file that is included, but yo
 
 1. Within the **scripts** folder, there is a CMakeLists.txt file, make sure to build it using the following commands.
 
-`cmake -S. Bbuild -Ax64`
+`cmake -S. build -Ax64`
 `cmake --build build -j`
 
 ## How to Use

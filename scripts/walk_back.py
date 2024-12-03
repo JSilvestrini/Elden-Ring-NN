@@ -4,9 +4,9 @@ import time
 def talk_to_gideon(slots: list) -> None:
     find_activate_window()
     time.sleep(.2)
-    key_press('e', 0.2)
+    key_press('e', 0.3)
     time.sleep(0.1)
-    key_press('e', 0.2)
+    key_press('e', 0.3)
     time.sleep(0.1)
     for i in slots:
         key_presses(['down'] * i)

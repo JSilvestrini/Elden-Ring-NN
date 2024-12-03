@@ -5,6 +5,8 @@ import numpy as np
 import os
 import json
 
+PREV_ACTION = []
+
 def find_activate_window() -> None:
     """
     Function used to activate the Elden Ring game window
@@ -27,6 +29,7 @@ def find_activate_window() -> None:
 
 def client_window_size() -> list:
     hwnd = win32gui.FindWindow(None, "ELDEN RING™")
+    win32gui.MoveWindow(hwnd, 0, 0, 1944, 1144, True)
     return win32gui.GetClientRect(hwnd)
 
 def get_file_count_and_zero_array(folder_path) -> np.ndarray:
@@ -87,7 +90,15 @@ def key_presses(keys: list) -> None:
         pydirectinput.keyUp(i, _pause=False)
         time.sleep(0.08)
 
-def key_combos(keys: list) -> None:
+def clean_keys() -> None:
+    try:
+        for i in PREV_ACTION:
+            pydirectinput.keyUp(i, _pause=False)
+        PREV_ACTION.clear()
+    except:
+        print("Error in clean_keys()")
+
+def press_combos(keys: list) -> None:
     """
     Function used to 'press' down multiple keys at the same time
 
@@ -97,12 +108,10 @@ def key_combos(keys: list) -> None:
     Returns:
         None
     """
+    clean_keys()
     for i in keys:
         pydirectinput.keyDown(i, _pause=False)
-    time.sleep(0.08)
-    for i in keys:
-        pydirectinput.keyUp(i, _pause=False)
-    time.sleep(0.08)
+        PREV_ACTION.append(i)
 
 def key_press(key: str, t: float) -> None:
     """

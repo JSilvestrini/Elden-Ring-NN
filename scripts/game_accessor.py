@@ -1,9 +1,8 @@
-import memory_access as mm
-from build import AOBScanner
+import scripts.memory_access as mm
+from scripts.build import AOBScanner
 import pymem
 import pymem.process
 import struct
-import time
 
 bases = {
     "WorldChrMan": {"aob": "48 8B 05 00 00 00 00 48 85 C0 74 0F 48 39 88", "mask": "xxx????xxxxxxxx", "offset": 3, "additional": 7},
@@ -57,7 +56,6 @@ class GameAccessor:
         self.enemies = {}
         self.find_bases()
         self.find_player_addrs()
-        self.find_enemies()
 
     def find_bases(self) -> None:
         """
@@ -107,6 +105,9 @@ class GameAccessor:
 
     def get_player_max_health(self) -> int:
         return mm.read_memory_int(self.__process, player_addrs_loc["playerMaxHealth"]["address"])
+
+    def kill_player(self) -> None:
+        mm.write_memory_int(self.__process, player_addrs_loc["playerHealth"]["address"], 0)
 
     def get_player_fp(self) -> int:
         return mm.read_memory_int(self.__process, player_addrs_loc["playerFP"]["address"])
@@ -258,4 +259,5 @@ class GameAccessor:
         return dead
 
 if __name__ == "__main__":
-    ...
+    game = GameAccessor()
+    game.kill_player()
