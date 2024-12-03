@@ -10,6 +10,7 @@ bases = {
     "GameDataMan": {"aob": "48 8B 05 00 00 00 00 48 85 C0 74 05 48 8B 40 58 C3 C3", "mask": "xxx????xxxxxxxxxxx", "offset": 3, "additional": 7},
     "NetManImp": {"aob": "48 8B 05 00 00 00 00 80 78 00 00 00 00 48 8D 9F 00 00 00 00 48 8B 03", "mask": "xxx????xx?x??xxx????xxx", "offset": 3, "additional": 7},
     "EventFlagMan": {"aob":"48 8B 3D 00 00 00 00 48 85 FF 00 00 32 C0 E9", "mask": "xxx????xxx??xxx", "offset": 3, "additional": 7},
+    "FieldArea": {"aob":"48 8B 0D 00 00 00 00 48 00 00 00 44 0F B6 61 00 E8 00 00 00 00 48 63 87 00 00 00 00 48 00 00 00 48 85 C0", "mask": "xxx????x???xxxx?x????xxx????x???xxx", "offset": 3, "additional": 7},
 }
 
 player_addrs_loc = {
@@ -20,7 +21,7 @@ player_addrs_loc = {
     "playerMaxFP": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x0, 0x14c]},
     "playerStamina": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x0, 0x154]},
     "playerMaxStamina": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x0, 0x158]},
-    "playerAnimation": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x58, 0x10, 0x190, 0x18, 0x40]},
+    "playerAnimation": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x80, 0x90]},
     "playerX": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x68, 0x70]},
     "playerY": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x68, 0x78]},
     "playerZ": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x68, 0x74]},
@@ -42,14 +43,18 @@ enemy_addrs_loc = {
     "isDead": {"offsets": [0x58, 0xc8, 0x24]},
 }
 
+# check FieldArea + E4 to see if in roundtable?
+# if not 11100, then not in roundtable
+# if
+
 class GameAccessor:
     def __init__(self):
-        self.reset()
-
-    def reset(self) -> None:
         self.__process = pymem.Pymem("eldenring.exe")
         self.__process_id = self.__process.process_id
         self.__process_base = self.__process.base_address
+        self.reset()
+
+    def reset(self) -> None:
         self.__physics_pointer = 0x0
         self.__is_paused = False
         self.__gravity = True
@@ -96,6 +101,9 @@ class GameAccessor:
             for offset in range(len(offsets) - 1):
                 addr = mm.read_memory(self.__process, addr + offsets[offset])
             player_addrs_loc[key]["address"] = addr + offsets[-1]
+
+    def player_in_roundtable(self) -> bool:
+        return (mm.read_memory_int(self.__process, bases["FieldArea"]["address"] + 0xE4) == 11100)
 
     def get_player_dead(self) -> bool:
         return self.get_player_health() <= 0
@@ -182,7 +190,8 @@ class GameAccessor:
 
         self.__is_paused = not self.__is_paused
 
-    def find_enemies(self) -> None:
+    def find_enemies(self, ids) -> None:
+        self.enemies = {} # remove old enemies incase there is a phase 2
         p = bases["WorldChrManAlt"]["address"]
         begin = mm.read_memory(self.__process, p + 0x1f1b8)
         end = mm.read_memory(self.__process, p + 0x1f1c0)
@@ -193,10 +202,11 @@ class GameAccessor:
             tb = mm.read_memory_bytes(self.__process, addr + 0x74, 2)
             gid = int(struct.unpack('>H', tb)[0].to_bytes(2, byteorder='little').hex(), 16)
 
-            if gid == 0xB026:
+            if gid in ids:
                 #print("Found Enemy")
                 self.find_enemy_addrs(addr)
-                return
+                ids.pop(ids.index(gid))
+                continue
 
     def find_enemy_addrs(self, base) -> None:
         self.enemies[base] = {}

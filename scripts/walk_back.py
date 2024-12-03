@@ -5,7 +5,7 @@ def talk_to_gideon(slots: list) -> None:
     find_activate_window()
     time.sleep(.2)
     key_press('e', 0.3)
-    time.sleep(0.1)
+    time.sleep(0.3)
     key_press('e', 0.3)
     time.sleep(0.1)
     for i in slots:
@@ -23,7 +23,11 @@ def test_func() -> None:
 """
 Below is a list of different walk backs that I have implemented using the Elden Ring Arena Mod.
     - Soldier of Godrick
-    - Leonine Misbegotten
+    - Leonine Misbegotten*
+    - Margit
+    - Morgott
+    - Godfrey
+    - Misbegotten Crusader
     - Crucible Knight Ordovis
     - Pumpkin Head
     - Burial Watchdog
@@ -31,67 +35,76 @@ Below is a list of different walk backs that I have implemented using the Elden 
     - Elemer of the Briar
     - Rellana
     - Dancing Lion
+    - Messmer
+    - Midra
+    - Consort Radahn
     - Romina
     - Ancient Dragon Man
     - Grafted Scion
     - Godskin Duo
     - ... More bosses in the future once Cutscenes are worked out
+    - Some bosses may not work yet due to phase 2 having a different Global ID
+        - Currently in the works
 """
 def soldier_of_godrick() -> None:
     talk_to_gideon([2, 3, 0])
-    enter_boss()
 
 def leonine_misbegotten() -> None:
     talk_to_gideon([1, 0])
-    enter_boss(1)
+
+def margit() -> None:
+    talk_to_gideon([1, 1])
+
+def morgott() -> None:
+    talk_to_gideon([0, 6])
+
+def godfrey() -> None:
+    talk_to_gideon([0, 10])
 
 def misbegotten_crusader() -> None:
     talk_to_gideon([2, 3, 21])
-    enter_boss()
 
 def crucible_knight() -> None:
     talk_to_gideon([2, 2, 20])
-    enter_boss()
 
 def pumpkin_head() -> None:
     talk_to_gideon([2, 4, 0])
-    enter_boss()
 
 def burial_watchdog() -> None:
     talk_to_gideon([2, 2, 1])
-    enter_boss()
 
 def beastman() -> None:
     talk_to_gideon([2, 3, 1])
-    enter_boss()
 
 def elemer() -> None:
     talk_to_gideon([1, 8])
-    enter_boss()
 
 def rellana() -> None:
     talk_to_gideon([3, 1])
-    enter_boss()
+
+def messmer() -> None:
+    talk_to_gideon([3, 6])
+
+def midra() -> None:
+    talk_to_gideon([3, 7])
+
+def consort_radahn() -> None:
+    talk_to_gideon([3, 10])
 
 def dancing_lion() -> None:
     talk_to_gideon([3, 0])
-    enter_boss()
 
 def romina() -> None:
     talk_to_gideon([3, 8])
-    enter_boss()
 
 def ancient_dragon_man() -> None:
     talk_to_gideon([4, 6])
-    enter_boss()
 
 def grafted_scion() -> None:
     talk_to_gideon([2, 0, 8])
-    enter_boss()
 
 def godskin_duo() -> None:
     talk_to_gideon([1, 28])
-    enter_boss()
 
 if __name__ == "__main__":
-    soldier_of_godrick()
+    ...

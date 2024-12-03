@@ -109,6 +109,19 @@ complex_action_space = {
     26: ['r'],          # use item
 }
 
+walk_backs = { # midra, check both forms [0005, 0006]
+    # more will be added, I have these for now
+    # since I have screenshots of their arenas
+    0: ([0x980A], walk_back.leonine_misbegotten),
+    1: ([0xC834], walk_back.dancing_lion),
+    2: ([0x9807], walk_back.rellana),
+    3: ([0xE016], walk_back.messmer), # does form 2 have different ID?
+    4: ([0x9805], walk_back.romina),
+    5: ([0x1019], walk_back.morgott),
+    6: ([0x0018], walk_back.margit),
+    7: ([0x1825], walk_back.godfrey) # does form 2 have different ID?
+}
+
 action_spaces = [simple_action_space, mid_action_space, complex_action_space]
 
 class EldenRing(gymnasium.Env):
@@ -119,80 +132,201 @@ class EldenRing(gymnasium.Env):
         # This small offset is for a 4k monitor, might be different for others
         self.__region = (12 + left, 52 + top, 12 + right, 52 + bottom)
         self.obs_type = "rgb"
-        self.observation_space = gymnasium.spaces.Box(low=0, high=1, shape=(self.__region[2]- self.__region[0], self.__region[3] - self.__region[1], 3), dtype=np.uint8)
-        self.action_space = action_spaces[action_space]
+        self.action_space = gymnasium.spaces.Discrete(len(action_spaces[action_space]))
+        self.observation_space = gymnasium.spaces.Box(low=0, high=1, shape=((self.__region[3]- self.__region[1]), (self.__region[2] - self.__region[0]), 3), dtype=np.uint8)
+
+        # can switch action spaces and reward function
+        self.key_action_space = action_spaces[action_space]
+        self.reward_function = self.complex_reward
         self.games = 0
-        self.reset()
+        # needed for reset to view speed of PPO
+        self.time_step = 0
+        self.begin_time = 0
+        self.end_time = 0
 
     def reset(self, seed=0, options=0) -> None:
-        # kill the player?
-        #self.__game.kill_player()
+        if self.games > 0:
+            print(f"Actions per Second: {self.time_step / (self.end_time - self.begin_time)}")
+
+        # wait for player to start animation
+        time.sleep(4)
+
+        # player dying animations
+        while self.__game.get_player_animation() in [17002, 18002]:
+            time.sleep(0.2)
+
+        time.sleep(2)
+
+        while self.__game.loading_state():
+            time.sleep(0.2)
+
+        time.sleep(2)
+
         self.reward = 0
         self.time_step = 0
         self.games += 1
-        # walk_back function
+
+        enemy_id, func = walk_backs[0]
+        func()
+
+        while self.__game.loading_state():
+            time.sleep(0.2)
+
+        self.__game.reset()
+
         time.sleep(1)
-        walk_back.leonine_misbegotten()
-        self.__game.find_enemies()
+        er_helper.enter_boss()
+
+        self.__game.find_enemies(enemy_id)
         self.screenshot()
         self.begin_time = time.time()
         # used for rewards
         self.deal_damage_timer = time.time()
         self.take_damage_timer = time.time()
-        self.updates()
+
+        self.player_max_health = self.__game.get_player_max_health()
+        self.player_current_health = self.__game.get_player_health()
+        self.player_max_stamina = self.__game.get_player_max_stamina()
+        self.player_current_stamina = self.__game.get_player_stamina()
+        self.player_max_fp = self.__game.get_player_max_fp()
+        self.player_current_fp = self.__game.get_player_fp()
+        self.boss_max_health = self.__game.get_enemy_max_health()
+        self.boss_current_health = self.__game.get_enemy_health()
+        self.player_coordinates = self.__game.get_player_coords()
+        self.boss_coordinates = self.__game.get_enemy_coords()
+
+        self.player_previous_health = self.player_current_health
+        self.player_previous_stamina = self.player_current_stamina
+        self.player_previous_fp = self.player_current_fp
+        self.boss_previous_health = self.boss_current_health
+        self.player_previous_coordinates = self.player_coordinates
+        self.boss_previous_coordinates = self.boss_coordinates
+
+        return self.state(), {}
 
     def perform_action(self, action) -> None:
-        er_helper.press_combos(self.action_space[action])
+        er_helper.press_combos(self.key_action_space[action])
 
     def screenshot(self) -> None:
         # screenshot, append to list, pop front if needed, check if other frame
         try:
             m = np.array(self.__camera.grab(region = self.__region))
             m = cv2.cvtColor(m, cv2.COLOR_BGRA2RGB)
-            im = Image.fromarray(m)
-            self.__screenshot = np.array(im) # im.reduce(4)
+            self.__screenshot = m
+            #im = Image.fromarray(m)
+            #im.save("screenshot.png")
+            #self.__screenshot = np.array(im.resize(((self.__region[2]- self.__region[0]) // 4, (self.__region[3] - self.__region[1]) // 4), Image.Resampling.BILINEAR)) # im.reduce(4)
         except:
             return
+
+    def update(self) -> None:
+        # update previous and current values
+        # needed for reward and database
+        self.player_previous_health = self.player_current_health
+        self.player_previous_stamina = self.player_current_stamina
+        self.player_previous_fp = self.player_current_fp
+        self.boss_previous_health = self.boss_current_health
+        self.player_previous_coordinates = self.player_coordinates
+        self.boss_previous_coordinates = self.boss_coordinates
+
+        self.player_current_health = self.__game.get_player_health()
+        self.player_current_stamina = self.__game.get_player_stamina()
+        self.player_current_fp = self.__game.get_player_fp()
+        self.boss_current_health = self.__game.get_enemy_health()
+        self.player_coordinates = self.__game.get_player_coords()
+        self.player_animation = self.__game.get_player_animation()
+        self.boss_coordinates = self.__game.get_enemy_coords()
+        self.boss_animations = self.__game.get_enemy_animation()
 
     def state(self):
         return self.__screenshot
 
     def simple_reward(self) -> None:
-        # focus on dealing damage and not taking damage
-        # negative reward for surviving without doing damage
-            # use a timer, if > 10 seconds, negative reward
-            # reset timer on hit
-        pass
+        damage_dealt = False
+        self.reward = -1
+
+        for i in range(0, len(self.__game.enemies)):
+        # reward for dealing damage
+            if self.boss_current_health[i] < self.boss_previous_health[i]:
+                damage_dealt = True
+                self.deal_damage_timer = time.time()
+                self.reward += (1 + ((self.boss_previous_health[i] - self.boss_current_health[i]) / self.boss_max_health[i]))
+
+        # punish for taking damage
+        if self.player_current_health < self.player_previous_health:
+            self.take_damage_timer = time.time()
+            self.reward -= (1 + ((self.player_previous_health - self.player_current_health) / self.player_max_health))
+
+        # punish for not dealing damage in 10 seconds
+        if not damage_dealt:
+            if time.time() - self.deal_damage_timer > 15:
+                self.reward -= (1 + (time.time() - self.deal_damage_timer - 15) / 10)
 
     def complex_reward(self) -> None:
-        # simple + incentive for healing, more healed more reward
-            # check max healing for level 0 flask
-        # incentive for maintaining at least 25% stamina
-        # add on incentive for not getting hit for a while
-        pass
+        self.simple_reward()
 
-    def survival_reward(self) -> None:
-        # focus on surviving as long as possible
-        # incentive for no damage, healing
-            # use timer like simple, but for time not hit
-            # every 15 seconds, increase reward even more
-                # 0-14, 15-29, 29-44 ...
-                # +0.5, +1.0, +1.5 ...
-        pass
+        # punish for low stamina
+        if self.player_current_stamina < self.player_max_stamina * 0.25:
+            self.reward -= (1 + ((self.player_max_stamina * 0.25 - self.player_current_stamina) / self.player_max_stamina))
+
+        if self.player_current_health > self.player_previous_health:
+            # reward for healing
+            self.reward += (1 + ((self.player_current_health - self.player_previous_health) / self.player_max_health))
+
+            # punish if healing way too early, lvl 1 flask heals 250, so if missing ou
+            # on more than 75 potential hp, punish
+            if self.player_current_health - self.player_previous_health < 175:
+                self.reward -= (1 + (250 - (self.player_current_health - self.player_previous_health)) / 250)
+
+        # reward if avoiding damage for more than 15 seconds
+        if time.time() - self.take_damage_timer > 15:
+            self.reward += (1 + (time.time() - self.take_damage_timer) / 15)
 
     def done(self) -> bool:
-        # check if player dead or all enemy dead
-        pass
+        done = False
+        enemy_done = True
+
+        if self.__game.get_player_dead():
+            self.reward -= 10
+            done = True
+
+        for i in self.__game.get_enemy_dead():
+            if not i:
+                enemy_done = False
+
+        if enemy_done:
+            self.reward += 10
+
+        return done or enemy_done
 
     def step(self, action):
+        t = time.time()
         self.time_step += 1
-        start = time.time()
         self.perform_action(action)
+        self.update()
         self.screenshot()
-        reward = self.rewards()
-        # check for done, player dead, bosses dead
-        # check for truncated
-        #return self.state(), reward, done, truncated, {}
+        self.reward_function()
+        done = self.done()
+        truncated = False
+
+        #if done:
+        #    time.sleep(5) # while player is dying
+        #    while self.__game.loading_state():
+        #        time.sleep(0.2)
+
+        if time.time() - self.begin_time >= 60:
+            truncated = True
+            self.__game.kill_player()
+
+        if done or truncated:
+            er_helper.clean_keys()
+            self.end_time = time.time()
+
+
+        return self.state(), self.reward, done, truncated, {}
 
 if __name__ == "__main__":
     er = EldenRing()
+    er.screenshot()
+    m = er.state()
+    print(m.shape)

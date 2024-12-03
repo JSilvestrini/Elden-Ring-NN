@@ -6,8 +6,6 @@ import os
 import sys
 import er_environment
 
-MAX_MEMORY = 2048
-BATCH_SIZE = 512
 LEARNING_RATE = 0.0002
 CHECKPOINT_DIR = './model/'
 LOG_DIR = './logs/'
@@ -34,7 +32,7 @@ def train_ppo(n_train):
     env = er_environment.EldenRing(action_space=1)
     #print(env.observation_space.shape)
     env = GrayScaleObservation(env, keep_dim=True)
-    env = DummyVecEnv([lambda: env])
+    env = DummyVecEnv([lambda: env]) # maybe in the future make it so there can be multiple environments
     env = VecFrameStack(env, 4, channels_order='last')
     model = PPO('CnnPolicy', env, verbose=1, learning_rate=LEARNING_RATE, n_steps=1024)
     model.learn(total_timesteps=n_train*10000, callback=callback)

@@ -129,7 +129,7 @@ def key_press(key: str, t: float) -> None:
     pydirectinput.keyUp(key, _pause=False)
     time.sleep(0.08)
 
-def enter_boss(t: float = 0.6) -> None:
+def enter_boss(t: float = 1) -> None:
     """
     General function used to enter the fog wall
 
