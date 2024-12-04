@@ -1,10 +1,10 @@
 from scripts.game_accessor import GameAccessor
 from scripts import er_helper
+from scripts import database_helper
 from scripts import walk_back
 import dxcam
 import time
 import numpy as np
-import torch
 from PIL import Image
 import cv2
 import gymnasium
@@ -125,7 +125,8 @@ walk_backs = { # midra, check both forms [0005, 0006]
 action_spaces = [simple_action_space, mid_action_space, complex_action_space]
 
 class EldenRing(gymnasium.Env):
-    def __init__(self, action_space = 1):
+    def __init__(self, action_space = 1, database_writing = False):
+        self.__database_writing = database_writing
         self.__game = GameAccessor()
         self.__camera = dxcam.create()
         left, top, right, bottom = er_helper.client_window_size()
@@ -143,6 +144,12 @@ class EldenRing(gymnasium.Env):
         self.time_step = 0
         self.begin_time = 0
         self.end_time = 0
+
+        if self.__database_writing:
+            self.create_database()
+            # read from database
+                # find greatest game number, set game
+
         self.__game.reset()
 
     def reset(self, seed=0, options=0) -> None:
@@ -315,11 +322,6 @@ class EldenRing(gymnasium.Env):
         done = self.done()
         truncated = False
 
-        #if done:
-        #    time.sleep(5) # while player is dying
-        #    while self.__game.loading_state():
-        #        time.sleep(0.2)
-
         if time.time() - self.begin_time >= 60:
             truncated = True
             self.__game.kill_player()
@@ -332,6 +334,10 @@ class EldenRing(gymnasium.Env):
             #print(f"Time Elapsed: {self.end_time - self.begin_time}")
             #print(f"Enemy Health: {self.__game.get_enemy_health()}")
             #print(f"Enemy Information: {self.__game.enemies}")
+
+        if self.__database_writing:
+            #write_to_database
+            ...
 
         return self.state(), self.reward, done, truncated, {}
 

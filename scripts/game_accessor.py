@@ -43,10 +43,6 @@ enemy_addrs_loc = {
     "isDead": {"offsets": [0x58, 0xc8, 0x24]},
 }
 
-# check FieldArea + E4 to see if in roundtable?
-# if not 11100, then not in roundtable
-# if
-
 class GameAccessor:
     def __init__(self):
         self.__process = pymem.Pymem("eldenring.exe")
