@@ -8,6 +8,7 @@ import numpy as np
 from PIL import Image
 import cv2
 import gymnasium
+import sqlite3
 
 '''
 forward             - w
@@ -146,14 +147,14 @@ class EldenRing(gymnasium.Env):
         self.end_time = 0
 
         if self.__database_writing:
-            self.create_database()
-            # read from database
-                # find greatest game number, set game
+            database_helper.create_database()
+            self.games = database_helper.get_run_number() if database_helper.get_run_number() > 0 else 0
 
         self.__game.reset()
 
     def reset(self, seed=0, options=0) -> None:
-        self.__game.reset()
+        er_helper.clean_keys()
+        self.__game.reset() # Reset when entering new area
 
         if self.games > 0:
             print(f"Actions per Second: {self.time_step / (self.end_time - self.begin_time)}")
@@ -171,17 +172,23 @@ class EldenRing(gymnasium.Env):
             time.sleep(0.2)
 
         # wait for stand up animation to finish after respawn
-        time.sleep(4)
+        time.sleep(5)
 
         self.reward = 0
         self.time_step = 0
         self.games += 1
 
-        enemy_id, func = walk_backs[0]
+        self.enemy_id, func = walk_backs[0]
         func()
+
+        if self.__database_writing:
+            for i in range(0, len(self.enemy_id)):
+                database_helper.increase_attempts(self.enemy_id[i])
 
         while self.__game.loading_state():
             time.sleep(0.2)
+
+        self.__game.reset() # Reset when entering new area, just incase
 
         time.sleep(1)
         er_helper.enter_boss()
@@ -189,7 +196,7 @@ class EldenRing(gymnasium.Env):
         self.__game.clean()
         while self.__game.enemies == {}:
             time.sleep(0.02)
-            self.__game.find_enemies(enemy_id.copy())
+            self.__game.find_enemies(self.enemy_id.copy())
 
         self.screenshot()
         self.begin_time = time.time()
@@ -207,6 +214,8 @@ class EldenRing(gymnasium.Env):
         self.boss_current_health = self.__game.get_enemy_health()
         self.player_coordinates = self.__game.get_player_coords()
         self.boss_coordinates = self.__game.get_enemy_coords()
+        self.player_animation = self.__game.get_player_animation()
+        self.boss_animation = self.__game.get_enemy_animation()
 
         self.player_previous_health = self.player_current_health
         self.player_previous_stamina = self.player_current_stamina
@@ -214,6 +223,8 @@ class EldenRing(gymnasium.Env):
         self.boss_previous_health = self.boss_current_health
         self.player_previous_coordinates = self.player_coordinates
         self.boss_previous_coordinates = self.boss_coordinates
+        self.player_previous_animation = self.player_animation
+        self.boss_previous_animation = self.boss_animation
 
         return self.state(), {}
 
@@ -241,6 +252,8 @@ class EldenRing(gymnasium.Env):
         self.boss_previous_health = self.boss_current_health
         self.player_previous_coordinates = self.player_coordinates
         self.boss_previous_coordinates = self.boss_coordinates
+        self.player_previous_animation = self.player_animation
+        self.boss_previous_animation = self.boss_animation
 
         self.player_current_health = self.__game.get_player_health()
         self.player_current_stamina = self.__game.get_player_stamina()
@@ -249,19 +262,25 @@ class EldenRing(gymnasium.Env):
         self.player_coordinates = self.__game.get_player_coords()
         self.player_animation = self.__game.get_player_animation()
         self.boss_coordinates = self.__game.get_enemy_coords()
-        self.boss_animations = self.__game.get_enemy_animation()
+        self.boss_animation = self.__game.get_enemy_animation()
+
+        if self.__database_writing:
+            if self.player_animation != self.player_previous_animation:
+                database_helper.write_to_database_animations({"Animation_ID": self.player_animation, "Run_Number": self.games, "Boss_ID": 0})
+
+            for i in range(0, len(self.boss_animation)):
+                if self.boss_animation[i] != self.boss_previous_animation[i]:
+                    database_helper.write_to_database_animations({"Animation_ID": self.boss_animation[i], "Run_Number": self.games, "Boss_ID": self.enemy_id[i]})
 
     def state(self):
         return self.__screenshot
 
     def simple_reward(self) -> None:
-        damage_dealt = False
         self.reward = -1
 
         for i in range(0, len(self.__game.enemies)):
         # reward for dealing damage
             if self.boss_current_health[i] < self.boss_previous_health[i]:
-                damage_dealt = True
                 self.deal_damage_timer = time.time()
                 self.reward += (1 + ((self.boss_previous_health[i] - self.boss_current_health[i]) / self.boss_max_health[i]))
 
@@ -270,10 +289,8 @@ class EldenRing(gymnasium.Env):
             self.take_damage_timer = time.time()
             self.reward -= (1 + ((self.player_previous_health - self.player_current_health) / self.player_max_health))
 
-        # punish for not dealing damage in 10 seconds
-        if not damage_dealt:
-            if time.time() - self.deal_damage_timer > 15:
-                self.reward -= (1 + (time.time() - self.deal_damage_timer - 15) / 10)
+        if time.time() - self.deal_damage_timer > 15:
+            self.reward -= (1 + (time.time() - self.deal_damage_timer - 15) / 10)
 
     def complex_reward(self) -> None:
         self.simple_reward()
@@ -296,24 +313,19 @@ class EldenRing(gymnasium.Env):
             self.reward += (1 + (time.time() - self.take_damage_timer) / 15)
 
     def done(self) -> bool:
-        done = False
-        enemy_done = True
-
         if self.__game.get_player_dead():
             self.reward -= 10
-            done = True
+            return True
 
         for i in self.__game.get_enemy_dead():
             if not i:
-                enemy_done = False
+                return False
 
-        if enemy_done:
-            self.reward += 10
+        self.reward += 10
 
-        return done or enemy_done
+        return True
 
     def step(self, action):
-        t = time.time()
         self.time_step += 1
         self.perform_action(action)
         self.update()
@@ -322,34 +334,78 @@ class EldenRing(gymnasium.Env):
         done = self.done()
         truncated = False
 
+        print(f"Player Health: {self.player_current_health}")
+        print(f"Player Dead: {self.__game.get_player_dead()}")
+        for i in range(0, len(self.boss_current_health)):
+            print(f"Boss {i} Health: {self.boss_current_health[i]}")
+
         if time.time() - self.begin_time >= 60:
             truncated = True
             self.__game.kill_player()
 
+        '''
+        print(f"Reward: {self.reward}")
+        print(f"Time Step: {self.time_step}")
+        print("PLAYER INFORMATION")
+        print(f"Health: {self.player_current_health}")
+        print(f"Stamina: {self.player_current_stamina}")
+        print(f"FP: {self.player_current_fp}")
+        print(f"Animation: {self.player_animation}")
+        print("BOSS INFORMATION")
+        for i in range(0, len(self.boss_current_health)):
+            print(f"Boss {i} Health: {self.boss_current_health[i]}")
+        '''
+
+        if self.__database_writing and self.time_step % 4 == 0:
+            for i in range(0, len(self.enemy_id)):
+                step_info = {
+                    "Run_Number": self.games,
+                    "Timestep": self.time_step,
+                    "Boss_ID": self.enemy_id[i],
+                    "pX": self.player_coordinates[0],
+                    "pY": self.player_coordinates[1],
+                    "pZ": self.player_coordinates[2],
+                    "pHealth": self.player_current_health,
+                    "pAnimation": self.player_animation,
+                    "pAction": action,
+                    "pReward": self.reward,
+                    "bX": self.boss_coordinates[i][0],
+                    "bY": self.boss_coordinates[i][1],
+                    "bZ": self.boss_coordinates[i][2],
+                    "bHealth": self.boss_current_health[i],
+                    "bAnimation": self.boss_animation[i]
+                }
+
+                database_helper.write_to_database_step_boss(step_info)
+            database_helper.write_to_database_step_player(step_info)
+
         if done or truncated:
             er_helper.clean_keys()
             self.end_time = time.time()
-            #print(f"Done: {done}, Truncated: {truncated}")
-            #print(f"Player Health: {self.__game.get_player_health()}")
-            #print(f"Time Elapsed: {self.end_time - self.begin_time}")
-            #print(f"Enemy Health: {self.__game.get_enemy_health()}")
-            #print(f"Enemy Information: {self.__game.enemies}")
+            print(f"Run {self.games} ended in {self.end_time - self.begin_time} seconds")
+            print(f"Done: {done}, Truncated: {truncated}")
+            #print(f"Enemies: {self.enemy_id}")
 
-        if self.__database_writing:
-            #write_to_database
-            ...
+            if self.__database_writing:
+                for i in range(0, len(self.enemy_id)):
+                    run_info = {
+                        "Run_Number": self.games,
+                        "Boss_ID": self.enemy_id[i],
+                        "Boss_Ending_Health": self.boss_current_health[i],
+                        "Player_Ending_Health": self.player_current_health,
+                        "Total_Time": self.end_time - self.begin_time,
+                        "Victory": (self.player_current_health > 0)
+                    }
+
+                    database_helper.write_to_database_run(run_info)
 
         return self.state(), self.reward, done, truncated, {}
 
 if __name__ == "__main__":
-    er = EldenRing()
-    er.reset()
+    #er = EldenRing(database_writing=True)
 
-    game = GameAccessor()
-    game.kill_player()
-    er.step(0)
-
-    er.reset()
-
-    game.kill_player()
-    er.step(0)
+    con = sqlite3.connect("elden_ring.db")
+    cur = con.cursor()
+    cur.execute("SELECT name FROM sqlite_master;")
+    print(cur.fetchall())
+    con.close()
