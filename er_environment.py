@@ -326,6 +326,16 @@ class EldenRing(gymnasium.Env):
         return True
 
     def step(self, action):
+        # while in cutscene, wait, clean enemies, find enemies, need to update for phase 2 bosses
+        load = False
+        while self.__game.loading_state():
+            load = True
+            time.sleep(0.2)
+
+        if load:
+            self.__game.clean_enemies()
+            self.__game.find_enemies()
+
         self.time_step += 1
         self.perform_action(action)
         self.update()
@@ -404,8 +414,9 @@ class EldenRing(gymnasium.Env):
 if __name__ == "__main__":
     #er = EldenRing(database_writing=True)
 
-    con = sqlite3.connect("elden_ring.db")
-    cur = con.cursor()
-    cur.execute("SELECT name FROM sqlite_master;")
-    print(cur.fetchall())
-    con.close()
+    #con = sqlite3.connect("elden_ring.db")
+    #cur = con.cursor()
+    #cur.execute("SELECT * FROM Detailed_Run_Info_Player;")
+    #print(cur.fetchone())
+    #con.close()
+    ...

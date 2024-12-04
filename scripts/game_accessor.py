@@ -23,12 +23,12 @@ player_addrs_loc = {
     "playerMaxStamina": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x0, 0x158]},
     "playerAnimation": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x80, 0x90]},
     "playerX": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x68, 0x70]},
-    "playerY": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x68, 0x78]},
-    "playerZ": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x68, 0x74]},
+    "playerY": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x68, 0x74]},
+    "playerZ": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x68, 0x78]},
     "playerCos": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x68, 0x54]},
     "playerSin": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x68, 0x5c]},
     "playerGravity": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x68, 0x1d3]},
-    "cutsceneLoading": {"base" : "EventFlagMan", "offsets" : [0x28, 0x113]}, # may or maynot need to prepend 0x0, != 0 means not controllable
+    "cutsceneLoading": {"base" : "EventFlagMan", "offsets" : [0x28, 0x113]}, # may or may not need to prepend 0x0, != 0 means not controllable
 }
 
 enemy_addrs_loc = {
@@ -38,8 +38,8 @@ enemy_addrs_loc = {
     "maxHealth": {"offsets": [0x190, 0x0, 0x13c]},
     "animation": {"offsets": [0x190, 0x18, 0x40]},
     "x": {"offsets": [0x190, 0x68, 0x70]},
-    "y": {"offsets": [0x190, 0x68, 0x78]},
-    "z": {"offsets": [0x190, 0x68, 0x74]},
+    "y": {"offsets": [0x190, 0x68, 0x74]},
+    "z": {"offsets": [0x190, 0x68, 0x78]},
     "isDead": {"offsets": [0x58, 0xc8, 0x24]},
 }
 
@@ -267,9 +267,9 @@ class GameAccessor:
     def get_enemy_coords(self) -> list:
         coords = []
         for key in self.enemies.keys():
-            x = mm.read_memory_int(self.__process, self.enemies[key]["x"])
-            y = mm.read_memory_int(self.__process, self.enemies[key]["y"])
-            z = mm.read_memory_int(self.__process, self.enemies[key]["z"])
+            x = mm.read_memory_float(self.__process, self.enemies[key]["x"])
+            y = mm.read_memory_float(self.__process, self.enemies[key]["y"])
+            z = mm.read_memory_float(self.__process, self.enemies[key]["z"])
             coords.append([x, y, z])
         return coords
 
