@@ -64,7 +64,13 @@ You need at least version 3.10 of CMake to use the file that is included, but yo
 ## How to Use
 
 1. Follow the installation instructions for the practice mod that was linked within the previous section. Once it is installed, launch it through `launchmod_eldenring.bat`. Make sure that you have selected a character, loaded in, and placed your character in front of Gideon. This should be the default spawning location if you created a new character or died. 
-2. Run `run.py`
+2. Run `run.py` using something similar to below.
+
+`python .\run.py <time_steps> <database>`
+
+`time_steps` refers to the number of time steps to allow the agent to train. The default is 1000, and the agent will train for a total of `time_steps * 1000` to ensure that the agent trains for long enough.
+
+`database` is a boolean and is false by default. If true, it will create the database and begin reading and writing to it. If the program is terminated and ran again, in order to use the database this boolean must be set.
 
 ## Documentation
 
