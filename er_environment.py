@@ -8,7 +8,6 @@ import numpy as np
 from PIL import Image
 import cv2
 import gymnasium
-import sqlite3
 
 '''
 forward             - w
@@ -126,7 +125,7 @@ walk_backs = { # midra, check both forms [0005, 0006]
 action_spaces = [simple_action_space, mid_action_space, complex_action_space]
 
 class EldenRing(gymnasium.Env):
-    def __init__(self, action_space = 1, database_writing = False):
+    def __init__(self, action_space = 1, database_writing = False, n_steps = 1024):
         self.__database_writing = database_writing
         self.__game = GameAccessor()
         self.__camera = dxcam.create()
@@ -142,7 +141,9 @@ class EldenRing(gymnasium.Env):
         self.reward_function = self.complex_reward
         self.games = 0
         # needed for reset to view speed of PPO
-        self.time_step = 0
+        self.time_step_run = 0
+        self.time_step_total = 0
+        self.n_steps = n_steps
         self.begin_time = 0
         self.end_time = 0
 
@@ -153,30 +154,15 @@ class EldenRing(gymnasium.Env):
         self.__game.reset()
 
     def reset(self, seed=0, options=0) -> None:
+        self.reward = 0
+        self.time_step_run = 0
+        self.games += 1
+        print(f"RESET CALLED: GAME {self.games} STARTING...")
         er_helper.clean_keys()
         self.__game.reset() # Reset when entering new area
 
-        if self.games > 0:
-            print(f"Actions per Second: {self.time_step / (self.end_time - self.begin_time)}")
-
-        # wait for player to start animation
-        time.sleep(4)
-
-        # player dying animations
-        while self.__game.get_player_animation() in [17002, 18002]:
-            time.sleep(0.2)
-
-        time.sleep(2)
-
-        while self.__game.loading_state():
-            time.sleep(0.2)
-
-        # wait for stand up animation to finish after respawn
-        time.sleep(5)
-
-        self.reward = 0
-        self.time_step = 0
-        self.games += 1
+        #if self.games > 0:
+        #    print(f"Actions per Second: {self.time_step / (self.end_time - self.begin_time)}")
 
         self.enemy_id, func = walk_backs[0]
         func()
@@ -326,6 +312,7 @@ class EldenRing(gymnasium.Env):
         return True
 
     def step(self, action):
+        time.sleep(0.08)
         # while in cutscene, wait, clean enemies, find enemies, need to update for phase 2 bosses
         load = False
         while self.__game.loading_state():
@@ -336,22 +323,22 @@ class EldenRing(gymnasium.Env):
             self.__game.clean_enemies()
             self.__game.find_enemies()
 
-        self.time_step += 1
         self.perform_action(action)
         self.update()
         self.screenshot()
         self.reward_function()
         done = self.done()
         truncated = False
+        print(f"Step - ENV: {self.time_step_total}")
 
-        print(f"Player Health: {self.player_current_health}")
-        print(f"Player Dead: {self.__game.get_player_dead()}")
-        for i in range(0, len(self.boss_current_health)):
-            print(f"Boss {i} Health: {self.boss_current_health[i]}")
+        self.time_step_run += 1
+        self.time_step_total += 1
 
-        if time.time() - self.begin_time >= 60:
+        if self.time_step_total % self.n_steps == 0 and self.time_step_total > 1:
+            print(f"Step - ENV: {self.time_step_total}")
             truncated = True
             self.__game.kill_player()
+            er_helper.clean_keys()
 
         '''
         print(f"Reward: {self.reward}")
@@ -366,11 +353,11 @@ class EldenRing(gymnasium.Env):
             print(f"Boss {i} Health: {self.boss_current_health[i]}")
         '''
 
-        if self.__database_writing and self.time_step % 4 == 0:
+        if self.__database_writing and self.time_step_run % 4 == 0:
             for i in range(0, len(self.enemy_id)):
                 step_info = {
                     "Run_Number": self.games,
-                    "Timestep": self.time_step,
+                    "Timestep": self.time_step_run,
                     "Boss_ID": self.enemy_id[i],
                     "pX": self.player_coordinates[0],
                     "pY": self.player_coordinates[1],
@@ -392,8 +379,8 @@ class EldenRing(gymnasium.Env):
         if done or truncated:
             er_helper.clean_keys()
             self.end_time = time.time()
-            print(f"Run {self.games} ended in {self.end_time - self.begin_time} seconds")
-            print(f"Done: {done}, Truncated: {truncated}")
+            #print(f"Run {self.games} ended in {self.end_time - self.begin_time} seconds")
+            #print(f"Done: {done}, Truncated: {truncated}")
             #print(f"Enemies: {self.enemy_id}")
 
             if self.__database_writing:
@@ -409,7 +396,21 @@ class EldenRing(gymnasium.Env):
 
                     database_helper.write_to_database_run(run_info)
 
+            # wait for player to start animation
+            time.sleep(4)
+            # player dying animations
+            while self.__game.get_player_animation() in [17002, 18002]:
+                time.sleep(0.2)
+            time.sleep(2)
+            while self.__game.loading_state():
+                time.sleep(0.2)
+            # wait for stand up animation to finish after respawn
+            time.sleep(5)
+
         return self.state(), self.reward, done, truncated, {}
+
+    def close(self) -> None:
+        pass
 
 if __name__ == "__main__":
     #er = EldenRing(database_writing=True)

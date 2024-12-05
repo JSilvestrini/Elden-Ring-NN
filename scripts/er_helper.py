@@ -29,7 +29,7 @@ def find_activate_window() -> None:
 
 def client_window_size() -> list:
     hwnd = win32gui.FindWindow(None, "ELDEN RING™")
-    win32gui.MoveWindow(hwnd, 0, 0, 1944, 1144, True)
+    win32gui.MoveWindow(hwnd, 0, 0, 800 + 24, 450 + 64, True)
     return win32gui.GetClientRect(hwnd)
 
 def get_file_count_and_zero_array(folder_path) -> np.ndarray:

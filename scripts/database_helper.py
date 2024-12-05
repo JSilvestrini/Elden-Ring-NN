@@ -1,5 +1,8 @@
 import sqlite3
 
+# open connection within environment, commit and close when run is finished, open connection on reset
+# If run does not finish, try and close the connection before opening it within reset
+
 sql_create_run_info = """
 CREATE TABLE Model_Run_Info (
     Run_Number INTEGER,
