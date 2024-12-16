@@ -34,6 +34,7 @@ player_addrs_loc = {
 enemy_addrs_loc = {
     "ID": {"offsets": [0x28, 0x124]},
     "globalID": {"offsets": [0x74]},
+    "paramID": {"offsets": [0x60]},
     "health": {"offsets": [0x190, 0x0, 0x138]},
     "maxHealth": {"offsets": [0x190, 0x0, 0x13c]},
     "animation": {"offsets": [0x190, 0x18, 0x40]},
@@ -208,14 +209,13 @@ class GameAccessor:
         for i in range(characters):
             #print(f"Scanning Character {i}")
             addr = mm.read_memory(self.__process, begin + i * 8)
-            tb = mm.read_memory_bytes(self.__process, addr + 0x74, 2)
-            gid = int(struct.unpack('>H', tb)[0].to_bytes(2, byteorder='little').hex(), 16)
+            tb = mm.read_memory_int(self.__process, addr + 0x60)
 
             #print(f"Found GID: {hex(gid)}")
-            if gid in ids:
+            if tb in ids:
                 #print("Found Enemy")
                 self.find_enemy_addrs(addr)
-                ids.pop(ids.index(gid))
+                ids.pop(ids.index(tb))
 
             if len(ids) == 0:
                 break
@@ -258,6 +258,12 @@ class GameAccessor:
                 id.append(struct.unpack('>H', tb)[0].to_bytes(2, byteorder='little').hex())
         return id
 
+    def get_param_id(self) -> list:
+        id = []
+        for key in self.enemies.keys():
+            id.append(mm.read_memory_int(self.__process, self.enemies[key]["paramID"]))
+        return id
+
     def get_enemy_animation(self) -> list:
         animation = []
         for key in self.enemies.keys():
@@ -282,4 +288,13 @@ class GameAccessor:
 
 if __name__ == "__main__":
     game = GameAccessor()
-    game.kill_player()
+    game.reset()
+    game.find_enemies([34600913])
+
+    print(game.get_enemy_health())
+    print(game.get_enemy_max_health())
+    print(game.get_enemy_id())
+    print(game.get_global_id(True))
+    print(game.get_enemy_animation())
+    print(game.get_enemy_coords())
+    print(game.get_enemy_dead())

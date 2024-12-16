@@ -1,5 +1,6 @@
 from scripts.er_helper import key_press, key_presses, find_activate_window, enter_boss
 import time
+from typing import List
 
 def talk_to_gideon(slots: list) -> None:
     find_activate_window()
@@ -21,90 +22,236 @@ def test_func() -> None:
     key_press('down', .04)
 
 """
-Below is a list of different walk backs that I have implemented using the Elden Ring Arena Mod.
-    - Soldier of Godrick
-    - Leonine Misbegotten*
-    - Margit
-    - Morgott
-    - Godfrey
-    - Misbegotten Crusader
-    - Crucible Knight Ordovis
-    - Pumpkin Head
-    - Burial Watchdog
-    - Beastman of Farum Azula
-    - Elemer of the Briar
-    - Rellana
-    - Dancing Lion
-    - Messmer
-    - Midra
-    - Consort Radahn
-    - Romina
-    - Ancient Dragon Man
-    - Grafted Scion
-    - Godskin Duo
-    - ... More bosses in the future once Cutscenes are worked out
-    - Some bosses may not work yet due to phase 2 having a different Global ID
-        - Currently in the works
+Most bosses have been implemented.
+
+Dragon based bosses may not function correctly.
+Bosses that do not have a fog wall may not function correctly.
+
+Will perform testing later.
 """
-def soldier_of_godrick() -> None:
-    talk_to_gideon([2, 3, 0])
 
-def leonine_misbegotten() -> None:
-    talk_to_gideon([1, 0])
+def godrick() -> List[int]:
+    talk_to_gideon([0, 0])
+    return [47500014]
 
-def margit() -> None:
-    talk_to_gideon([1, 1])
+def rennala() -> List[int]:
+    talk_to_gideon([0, 1])
+    return [20300024, 20300124, 20310024]
 
-def morgott() -> None:
+def regal_spirit() -> List[int]:
+    talk_to_gideon([0, 2])
+    return [46700065]
+
+def starscourge_radahn() -> List[int]:
+    talk_to_gideon([0, 3])
+    return [47300040]
+
+def astel() -> List[int]:
+    talk_to_gideon([0, 4])
+    return [46200062]
+
+def fortissax() -> List[int]:
+    talk_to_gideon([0, 5])
+    return [45110066]
+
+def morgott() -> List[int]:
     talk_to_gideon([0, 6])
+    return [45110066]
 
-def godfrey() -> None:
+def rykard() -> List[int]:
+    talk_to_gideon([0, 7])
+    return [47100038, 47101038]
+
+def maliketh() -> List[int]:
+    talk_to_gideon([0, 8])
+    return [21100072, 21101072]
+
+def fire_giant() -> List[int]:
+    talk_to_gideon([0, 9])
+    return [47600050, 47601050]
+
+def godfrey() -> List[int]:
     talk_to_gideon([0, 10])
+    return [47200070, 47210070]
 
-def misbegotten_crusader() -> None:
-    talk_to_gideon([2, 3, 21])
+def placidusax() -> List[int]:
+    talk_to_gideon([0, 11])
+    return [45200072]
 
-def crucible_knight() -> None:
-    talk_to_gideon([2, 2, 20])
+def leonine_misbegotten() -> List[int]:
+    talk_to_gideon([1, 0])
+    return [34600913]
 
-def pumpkin_head() -> None:
-    talk_to_gideon([2, 4, 0])
+def margit() -> List[int]:
+    talk_to_gideon([1, 1])
+    return [21300014]
 
-def burial_watchdog() -> None:
-    talk_to_gideon([2, 2, 1])
+def dragonkin_nokstella() -> List[int]:
+    talk_to_gideon([1, 2])
+    return [46500960]
 
-def beastman() -> None:
-    talk_to_gideon([2, 3, 1])
+def dragon_agheel() -> List[int]:
+    talk_to_gideon([1, 3])
+    return [45000010]
 
-def elemer() -> None:
+def ancestor_spirit() -> List[int]:
+    talk_to_gideon([1, 4])
+    return [46700964]
+
+def red_wolf() -> List[int]:
+    talk_to_gideon([1, 5])
+    return [31811024]
+
+def loretta() -> List[int]:
+    talk_to_gideon([1, 6])
+    return [32520921]
+
+def makar() -> List[int]:
+    talk_to_gideon([1, 7])
+    return [49100026]
+
+def elemer() -> List[int]:
     talk_to_gideon([1, 8])
+    return [31000931]
 
-def rellana() -> None:
-    talk_to_gideon([3, 1])
+# niall 31000931
+def oneil() -> List[int]:
+    talk_to_gideon([1, 9])
+    return [31000931]
 
-def messmer() -> None:
-    talk_to_gideon([3, 6])
+def dragonkin_siofra() -> List[int]:
+    talk_to_gideon([1, 10])
+    return [46500265]
 
-def midra() -> None:
-    talk_to_gideon([3, 7])
+def smarag() -> List[int]:
+    talk_to_gideon([1, 11])
+    return [45020920]
 
-def consort_radahn() -> None:
-    talk_to_gideon([3, 10])
+def mimic_tear() -> List[int]:
+    talk_to_gideon([1, 12])
+    return [526100965]
 
-def dancing_lion() -> None:
-    talk_to_gideon([3, 0])
+def misbegotten_crucible_knight() -> List[int]:
+    talk_to_gideon([1, 13])
+    # misbegotten, knight
+    return [34600941, 25000941]
 
-def romina() -> None:
-    talk_to_gideon([3, 8])
+def goldfrey() -> List[int]:
+    talk_to_gideon([1, 14])
+    return [47200134]
 
-def ancient_dragon_man() -> None:
-    talk_to_gideon([4, 6])
+def godskin_noble() -> List[int]:
+    talk_to_gideon([1, 15])
+    return [35700038]
 
-def grafted_scion() -> None:
-    talk_to_gideon([2, 0, 8])
+def sirulia() -> List[int]:
+    talk_to_gideon([1, 16])
+    return [25001066]
 
-def godskin_duo() -> None:
+def mohg() -> List[int]:
+    talk_to_gideon([1, 24])
+    return [48001935]
+
+def godskin_apostle() -> List[int]:
+    talk_to_gideon([1, 25])
+    return [35600042]
+
+def godskin_duo() -> List[int]:
     talk_to_gideon([1, 28])
+    # boss bar, noble, apostle
+    return [35600972, 35700172, 35600172]
+
+def gideon() -> List[int]:
+    talk_to_gideon([1, 29])
+    return [523240070]
+
+def loretta_haligtree() -> List[int]:
+    talk_to_gideon([1, 31])
+    return [32520054]
+
+def tree_sentinel() -> List[int]:
+    talk_to_gideon([2, 0, 3])
+    return [32510010]
+
+def grafted_scion() -> List[int]:
+    talk_to_gideon([2, 0, 8])
+    return [46900007]
+
+def tree_sentinel_duo() -> List[int]:
+    talk_to_gideon([2, 0, 26])
+    return [32511030, 32510030]
+
+def draconic_tree_sentinel() -> List[int]:
+    talk_to_gideon([2, 0, 30])
+    return [32500033]
+
+def burial_watchdog() -> List[int]:
+    talk_to_gideon([2, 2, 1])
+    return [42600110]
+
+def burial_watchdog_duo() -> List[int]:
+    talk_to_gideon([2, 2, 11])
+    return [42600940, 42601940]
+
+def crucible_knight_duo() -> List[int]:
+    talk_to_gideon([2, 2, 20])
+    return [25001933, 25000933]
+
+def beastman() -> List[int]:
+    talk_to_gideon([2, 3, 1])
+    return [39701910]
+
+def misbegotten_crusader() -> List[int]:
+    talk_to_gideon([2, 3, 21])
+    return [34601952]
+
+def pumpkin_head() -> List[int]:
+    talk_to_gideon([2, 4, 0])
+    return [43400910]
+
+def pumpkin_head_duo() -> List[int]:
+    talk_to_gideon([2, 4, 6])
+    return [43401940, 43400940]
+
+def dancing_lion() -> List[int]: 
+    talk_to_gideon([3, 0])
+    return [52100088]
+
+def rellana() -> List[int]:
+    talk_to_gideon([3, 1])
+    return [53000082]
+
+def putrescent_knight() -> List[int]:
+    talk_to_gideon([3, 3])
+    return [50200087, 50200187]
+
+def messmer() -> List[int]:
+    talk_to_gideon([3, 6])
+    return [51300099, 51301099]
+
+def midra() -> List[int]:
+    talk_to_gideon([3, 7])
+    return [50500086, 50510086]
+
+def romina() -> List[int]:
+    talk_to_gideon([3, 8])
+    return [50300094]
+
+def consort_radahn() -> List[int]:
+    talk_to_gideon([3, 10])
+    return [52200089, 52201089]
+
+def death_knight() -> List[int]:
+    talk_to_gideon([4, 5])
+    return [50700081]
+
+def ancient_dragon_man() -> List[int]:
+    talk_to_gideon([4, 6])
+    return [524070081]
+
+def death_knight_rauh() -> List[int]:
+    talk_to_gideon([4, 14])
+    return [50701095]
 
 if __name__ == "__main__":
     ...
