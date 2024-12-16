@@ -28,13 +28,12 @@ class CallBack(BaseCallback):
             self.model.save(model_path)
 
         if self.n_calls % 1024 == 0:
-            print(f"Step - Run: {self.n_calls}")
             er_helper.clean_keys()
 
         return True
 
 def train_ppo(n_train, database_writing):
-    callback = CallBack(freq=2048, path=CHECKPOINT_DIR)
+    callback = CallBack(freq=20480, path=CHECKPOINT_DIR)
 
     env = er_environment.EldenRing(action_space=1, database_writing=database_writing, n_steps=1024)
     #print(env.observation_space.shape)

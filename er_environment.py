@@ -50,6 +50,25 @@ simple_action_space = {
     16: ['r'],          # use item
 }
 
+simple_no_switch_action_space = {
+    0: ['w'],           # forward
+    1: ['a'],           # left
+    2: ['s'],           # back
+    3: ['d'],           # right
+    4: ['w', 'space'],  # forward roll
+    5: ['a', 'space'],  # left roll
+    6: ['s', 'space'],  # back roll
+    7: ['d', 'space'],  # right roll
+    8: ['f'],           # jump
+    9: ['3'],           # switch target left
+    10: ['4'],          # switch target right
+    11: ['m'],          # attack
+    12: ['l'],          # strong attack
+    13: ['k'],          # block
+    14: ['n'],          # use skill
+    15: ['r'],          # use item
+}
+
 '''Adds more movement options for jumping'''
 mid_action_space = {
     0: ['w'],           # forward
@@ -76,6 +95,32 @@ mid_action_space = {
     21: ['k'],          # block
     22: ['n'],          # use skill
     23: ['r'],          # use item
+}
+
+mid_no_switchaction_space = {
+    0: ['w'],           # forward
+    1: ['a'],           # left
+    2: ['s'],           # back
+    3: ['d'],           # right
+    4: ['w', 'space'],  # forward roll
+    5: ['a', 'space'],  # left roll
+    6: ['s', 'space'],  # back roll
+    7: ['d', 'space'],  # right roll
+    8: ['space'],       # dodge
+    9: ['f'],           # jump
+    10: ['w', 'f'],     # forward jump
+    11: ['a', 'f'],     # left jump
+    12: ['s', 'f'],     # back jump
+    13: ['d', 'f'],     # right jump
+    14: ['w', 'f', 'l'],# forward jump + strong attack
+    15: ['x'],          # crouch
+    16: ['3'],          # switch target left
+    17: ['4'],          # switch target right
+    18: ['m'],          # attack
+    19: ['l'],          # strong attack
+    20: ['k'],          # block
+    21: ['n'],          # use skill
+    22: ['r'],          # use item
 }
 
 '''Adds lock on and some movement when attacking'''
@@ -112,20 +157,56 @@ complex_action_space = {
 walk_backs = { # midra, check both forms [0005, 0006]
     # more will be added, I have these for now
     # since I have screenshots of their arenas
-    0: ([0x980A], walk_back.leonine_misbegotten),
-    1: ([0xC834], walk_back.dancing_lion),
-    2: ([0x9807], walk_back.rellana),
-    3: ([0xE016], walk_back.messmer), # does form 2 have different ID?
-    4: ([0x9805], walk_back.romina),
-    5: ([0x1019], walk_back.morgott),
-    6: ([0x0018], walk_back.margit),
-    7: ([0x1825], walk_back.godfrey) # does form 2 have different ID?
+    0: walk_back.godrick,
+    1: walk_back.regal_spirit,
+    2: walk_back.morgott,
+    3: walk_back.maliketh,
+    4: walk_back.godfrey,
+    5: walk_back.leonine_misbegotten,
+    6: walk_back.margit,
+    7: walk_back.dragonkin_nokstella,
+    8: walk_back.ancestor_spirit,
+    9: walk_back.red_wolf,
+    10: walk_back.loretta,
+    11: walk_back.makar,
+    12: walk_back.elemer,
+    13: walk_back.dragonkin_siofra,
+    14: walk_back.mimic_tear,
+    15: walk_back.misbegotten_crucible_knight,
+    16: walk_back.goldfrey,
+    17: walk_back.godskin_noble,
+    18: walk_back.sirulia,
+    19: walk_back.mohg,
+    20: walk_back.godskin_apostle,
+    21: walk_back.gideon,
+    22: walk_back.loretta_haligtree,
+    23: walk_back.tree_sentinel,
+    24: walk_back.grafted_scion,
+    25: walk_back.tree_sentinel_duo,
+    26: walk_back.draconic_tree_sentinel,
+    27: walk_back.burial_watchdog,
+    28: walk_back.burial_watchdog_duo,
+    29: walk_back.crucible_knight_duo,
+    30: walk_back.beastman,
+    31: walk_back.misbegotten_crusader,
+    32: walk_back.pumpkin_head,
+    33: walk_back.pumpkin_head_duo,
+    34: walk_back.dancing_lion,
+    35: walk_back.rellana,
+    36: walk_back.putrescent_knight,
+    37: walk_back.messmer,
+    38: walk_back.midra,
+    39: walk_back.romina,
+    40: walk_back.consort_radahn,
+    41: walk_back.death_knight,
+    42: walk_back.ancient_dragon_man,
+    43: walk_back.death_knight_rauh
 }
 
-action_spaces = [simple_action_space, mid_action_space, complex_action_space]
+action_spaces = [simple_no_switch_action_space,simple_action_space, mid_no_switchaction_space, mid_action_space, complex_action_space]
 
 class EldenRing(gymnasium.Env):
-    def __init__(self, action_space = 1, database_writing = False, n_steps = 1024):
+    def __init__(self, action_space = 2, database_writing = False, n_steps = 1024):
         self.__database_writing = database_writing
         self.__game = GameAccessor()
         self.__camera = dxcam.create()
@@ -154,6 +235,16 @@ class EldenRing(gymnasium.Env):
         self.__game.reset()
 
     def reset(self, seed=0, options=0) -> None:
+        # if reset is called and player is still in boss arena
+        if not self.__game.player_in_roundtable():
+            self.__game.kill_player()
+
+        while not self.__game.player_in_roundtable():
+            time.sleep(0.2)
+
+        time.sleep(3)
+
+        # after n games change the walkback function, maybe 1k then 10k then 100k
         self.reward = 0
         self.time_step_run = 0
         self.games += 1
@@ -164,8 +255,8 @@ class EldenRing(gymnasium.Env):
         #if self.games > 0:
         #    print(f"Actions per Second: {self.time_step / (self.end_time - self.begin_time)}")
 
-        self.enemy_id, func = walk_backs[0]
-        func()
+        func = walk_backs[seed % len(walk_backs)]
+        self.enemy_id = func()
 
         if self.__database_writing:
             for i in range(0, len(self.enemy_id)):
@@ -291,8 +382,9 @@ class EldenRing(gymnasium.Env):
 
             # punish if healing way too early, lvl 1 flask heals 250, so if missing ou
             # on more than 75 potential hp, punish
+            # 175 is an arbitrary number in this case
             if self.player_current_health - self.player_previous_health < 175:
-                self.reward -= (1 + (250 - (self.player_current_health - self.player_previous_health)) / 250)
+                self.reward -= (1 + (250 - (self.player_current_health - self.player_previous_health)) / 175)
 
         # reward if avoiding damage for more than 15 seconds
         if time.time() - self.take_damage_timer > 15:
@@ -312,14 +404,17 @@ class EldenRing(gymnasium.Env):
         return True
 
     def step(self, action):
-        time.sleep(0.08)
-        # while in cutscene, wait, clean enemies, find enemies, need to update for phase 2 bosses
+        # arbitrary delay to ensure that only 7 or so actions are performed per second
+        time.sleep(0.1)
+        # while in cut scene, wait, clean enemies, find enemies, need to update for phase 2 bosses
         load = False
+
         while self.__game.loading_state():
             load = True
             time.sleep(0.2)
 
         if load:
+            # this will check for the phase 2 enemy
             self.__game.clean_enemies()
             self.__game.find_enemies()
 
@@ -329,29 +424,11 @@ class EldenRing(gymnasium.Env):
         self.reward_function()
         done = self.done()
         truncated = False
-        print(f"Step - ENV: {self.time_step_total}")
-
-        self.time_step_run += 1
-        self.time_step_total += 1
 
         if self.time_step_total % self.n_steps == 0 and self.time_step_total > 1:
-            print(f"Step - ENV: {self.time_step_total}")
             truncated = True
             self.__game.kill_player()
             er_helper.clean_keys()
-
-        '''
-        print(f"Reward: {self.reward}")
-        print(f"Time Step: {self.time_step}")
-        print("PLAYER INFORMATION")
-        print(f"Health: {self.player_current_health}")
-        print(f"Stamina: {self.player_current_stamina}")
-        print(f"FP: {self.player_current_fp}")
-        print(f"Animation: {self.player_animation}")
-        print("BOSS INFORMATION")
-        for i in range(0, len(self.boss_current_health)):
-            print(f"Boss {i} Health: {self.boss_current_health[i]}")
-        '''
 
         if self.__database_writing and self.time_step_run % 4 == 0:
             for i in range(0, len(self.enemy_id)):
@@ -399,13 +476,18 @@ class EldenRing(gymnasium.Env):
             # wait for player to start animation
             time.sleep(4)
             # player dying animations
+            # if the player is dying still
             while self.__game.get_player_animation() in [17002, 18002]:
                 time.sleep(0.2)
+
             time.sleep(2)
+
+            # if player is in loading screen
             while self.__game.loading_state():
                 time.sleep(0.2)
-            # wait for stand up animation to finish after respawn
-            time.sleep(5)
+
+        self.time_step_run += 1
+        self.time_step_total += 1
 
         return self.state(), self.reward, done, truncated, {}
 
