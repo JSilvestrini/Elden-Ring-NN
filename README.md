@@ -96,11 +96,13 @@ This file is used heavily by the environment to retrieve information about the g
 
 This file was made to easily access pointers and memory addresses that were retrieved from Cheat Engine. This is mainly used inside of the **game_access.py** file to read information about the game state as well as edit information about the game state, like the player location, gravity toggle, and logic pause.
 
+### speedhack.py
+
+This is heavily based on the code from soulsgym and allows the physics engine to run faster rather than just the animation speed being faster. This allows for accelerated training since running multiple instances of Elden Ring is not doable at the moment.
+
 ### walk_back.py
 
 This file allows the AI to easily get back to different boss arenas using the Elden Ring Boss Arena mod.
-
-### webview.py
 
 ##### TODO
 
@@ -112,7 +114,7 @@ This repository, along with the Hexington Cheat Engine table, gave information o
 
 **[SoulsGym](https://github.com/amacati/SoulsGym/tree/master)**
 
-This repository contains a goldmine of information, and pointed me towards one of the most important reference (Elden Ring FPS). While no code was directly used from this repo, it was the original inspiration for creating an Elden Ring environment and using visual information rather than ground truth information.
+This repository contains a goldmine of information, and pointed me towards one of the most important reference (Elden Ring FPS). It was the original inspiration for creating an Elden Ring environment and using visual information rather than ground truth information. I directly used code from the speedhack.py file and utilized the precompiled speedhack.dll file that is injected into the game.
 
 **[Hexington Cheat Engine](https://www.nexusmods.com/eldenring/mods/48)**
 

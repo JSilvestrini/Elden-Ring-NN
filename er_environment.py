@@ -2,12 +2,13 @@ from scripts.game_accessor import GameAccessor
 from scripts import er_helper
 from scripts import database_helper
 from scripts import walk_back
+from scripts import speedhack
 import dxcam
 import time
 import numpy as np
-from PIL import Image
 import cv2
 import gymnasium
+import random
 
 '''
 forward             - w
@@ -154,53 +155,62 @@ complex_action_space = {
     26: ['r'],          # use item
 }
 
-walk_backs = { # midra, check both forms [0005, 0006]
+full_walk_backs = { # midra, check both forms [0005, 0006]
     # more will be added, I have these for now
     # since I have screenshots of their arenas
     0: walk_back.godrick,
-    1: walk_back.regal_spirit,
-    2: walk_back.morgott,
-    3: walk_back.maliketh,
-    4: walk_back.godfrey,
-    5: walk_back.leonine_misbegotten,
-    6: walk_back.margit,
-    7: walk_back.dragonkin_nokstella,
-    8: walk_back.ancestor_spirit,
-    9: walk_back.red_wolf,
-    10: walk_back.loretta,
-    11: walk_back.makar,
-    12: walk_back.elemer,
-    13: walk_back.dragonkin_siofra,
-    14: walk_back.mimic_tear,
-    15: walk_back.misbegotten_crucible_knight,
-    16: walk_back.goldfrey,
-    17: walk_back.godskin_noble,
-    18: walk_back.sirulia,
-    19: walk_back.mohg,
-    20: walk_back.godskin_apostle,
-    21: walk_back.gideon,
-    22: walk_back.loretta_haligtree,
-    23: walk_back.tree_sentinel,
-    24: walk_back.grafted_scion,
-    25: walk_back.tree_sentinel_duo,
-    26: walk_back.draconic_tree_sentinel,
-    27: walk_back.burial_watchdog,
-    28: walk_back.burial_watchdog_duo,
-    29: walk_back.crucible_knight_duo,
-    30: walk_back.beastman,
-    31: walk_back.misbegotten_crusader,
-    32: walk_back.pumpkin_head,
-    33: walk_back.pumpkin_head_duo,
-    34: walk_back.dancing_lion,
-    35: walk_back.rellana,
-    36: walk_back.putrescent_knight,
-    37: walk_back.messmer,
-    38: walk_back.midra,
-    39: walk_back.romina,
-    40: walk_back.consort_radahn,
-    41: walk_back.death_knight,
-    42: walk_back.ancient_dragon_man,
-    43: walk_back.death_knight_rauh
+    1: walk_back.morgott,
+    2: walk_back.maliketh,
+    3: walk_back.godfrey,
+    4: walk_back.leonine_misbegotten,
+    5: walk_back.margit,
+    6: walk_back.dragonkin_nokstella,
+    7: walk_back.red_wolf,
+    8: walk_back.loretta,
+    9: walk_back.makar,
+    10: walk_back.elemer,
+    11: walk_back.dragonkin_siofra,
+    12: walk_back.mimic_tear,
+    13: walk_back.misbegotten_crucible_knight,
+    14: walk_back.goldfrey,
+    15: walk_back.godskin_noble,
+    16: walk_back.mohg,
+    17: walk_back.godskin_apostle,
+    18: walk_back.gideon,
+    19: walk_back.loretta_haligtree,
+    20: walk_back.grafted_scion,
+    21: walk_back.burial_watchdog,
+    22: walk_back.burial_watchdog_duo,
+    23: walk_back.crucible_knight_duo,
+    24: walk_back.beastman,
+    25: walk_back.misbegotten_crusader,
+    26: walk_back.dancing_lion,
+    27: walk_back.rellana,
+    28: walk_back.messmer,
+    29: walk_back.midra,
+    30: walk_back.romina,
+    31: walk_back.consort_radahn,
+    32: walk_back.death_knight,
+    33: walk_back.ancient_dragon_man,
+    34: walk_back.death_knight_rauh
+}
+
+walk_backs = {
+    # removed most stake of marika fights
+    # removed most cutscene fights (not all though)
+    #0: walk_back.godrick,
+    0: walk_back.morgott,
+    #1: walk_back.godfrey,
+    1: walk_back.leonine_misbegotten,
+    2: walk_back.red_wolf,
+    3: walk_back.mohg,
+    4: walk_back.godskin_apostle,
+    5: walk_back.beastman,
+    6: walk_back.dancing_lion,
+    7: walk_back.rellana,
+    #14: walk_back.messmer,
+    #15: walk_back.midra,
+    8: walk_back.romina
 }
 
 action_spaces = [simple_no_switch_action_space,simple_action_space, mid_no_switchaction_space, mid_action_space, complex_action_space]
@@ -228,6 +238,8 @@ class EldenRing(gymnasium.Env):
         self.begin_time = 0
         self.end_time = 0
 
+        self.speed_hack = speedhack.SpeedHackConnector(self.__game.get_process_id())
+
         if self.__database_writing:
             database_helper.create_database()
             self.games = database_helper.get_run_number() if database_helper.get_run_number() > 0 else 0
@@ -235,14 +247,13 @@ class EldenRing(gymnasium.Env):
         self.__game.reset()
 
     def reset(self, seed=0, options=0) -> None:
-        # if reset is called and player is still in boss arena
         if not self.__game.player_in_roundtable():
             self.__game.kill_player()
-
-        while not self.__game.player_in_roundtable():
-            time.sleep(0.2)
-
+            time.sleep(10)
         time.sleep(3)
+
+        self.speed = 1
+        self.speed_hack.set_game_speed(self.speed)
 
         # after n games change the walkback function, maybe 1k then 10k then 100k
         self.reward = 0
@@ -255,7 +266,7 @@ class EldenRing(gymnasium.Env):
         #if self.games > 0:
         #    print(f"Actions per Second: {self.time_step / (self.end_time - self.begin_time)}")
 
-        func = walk_backs[seed % len(walk_backs)]
+        func = walk_backs[random.randint(0, len(walk_backs) - 1) % len(walk_backs)]
         self.enemy_id = func()
 
         if self.__database_writing:
@@ -270,12 +281,20 @@ class EldenRing(gymnasium.Env):
         time.sleep(1)
         er_helper.enter_boss()
 
+        self.speed = 2
+        self.speed_hack.set_game_speed(self.speed)
+
         self.__game.clean()
         while self.__game.enemies == {}:
             time.sleep(0.02)
             self.__game.find_enemies(self.enemy_id.copy())
 
         self.screenshot()
+        self.reset_ground_truth()
+
+        return self.state(), {}
+    
+    def reset_ground_truth(self) -> None:
         self.begin_time = time.time()
         # used for rewards
         self.deal_damage_timer = time.time()
@@ -302,8 +321,6 @@ class EldenRing(gymnasium.Env):
         self.boss_previous_coordinates = self.boss_coordinates
         self.player_previous_animation = self.player_animation
         self.boss_previous_animation = self.boss_animation
-
-        return self.state(), {}
 
     def perform_action(self, action) -> None:
         er_helper.press_combos(self.key_action_space[action])
@@ -366,8 +383,8 @@ class EldenRing(gymnasium.Env):
             self.take_damage_timer = time.time()
             self.reward -= (1 + ((self.player_previous_health - self.player_current_health) / self.player_max_health))
 
-        if time.time() - self.deal_damage_timer > 15:
-            self.reward -= (1 + (time.time() - self.deal_damage_timer - 15) / 10)
+        if time.time() - self.deal_damage_timer > (15 / self.speed):
+            self.reward -= (1 + (time.time() - self.deal_damage_timer - (15 / self.speed)) / 10)
 
     def complex_reward(self) -> None:
         self.simple_reward()
@@ -387,8 +404,8 @@ class EldenRing(gymnasium.Env):
                 self.reward -= (1 + (250 - (self.player_current_health - self.player_previous_health)) / 175)
 
         # reward if avoiding damage for more than 15 seconds
-        if time.time() - self.take_damage_timer > 15:
-            self.reward += (1 + (time.time() - self.take_damage_timer) / 15)
+        if time.time() - self.take_damage_timer > (15 / self.speed):
+            self.reward += (1 + (time.time() - self.take_damage_timer) / (15 / self.speed))
 
     def done(self) -> bool:
         if self.__game.get_player_dead():
@@ -405,7 +422,7 @@ class EldenRing(gymnasium.Env):
 
     def step(self, action):
         # arbitrary delay to ensure that only 7 or so actions are performed per second
-        time.sleep(0.1)
+        time.sleep(0.12 / self.speed)
         # while in cut scene, wait, clean enemies, find enemies, need to update for phase 2 bosses
         load = False
 
@@ -478,7 +495,7 @@ class EldenRing(gymnasium.Env):
             # player dying animations
             # if the player is dying still
             while self.__game.get_player_animation() in [17002, 18002]:
-                time.sleep(0.2)
+                time.sleep(.2)
 
             time.sleep(2)
 
@@ -502,4 +519,7 @@ if __name__ == "__main__":
     #cur.execute("SELECT * FROM Detailed_Run_Info_Player;")
     #print(cur.fetchone())
     #con.close()
+
+    er = EldenRing(database_writing=False)
+    er.reset(seed = 1231)
     ...

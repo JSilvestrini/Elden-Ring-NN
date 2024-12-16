@@ -41,7 +41,7 @@ def train_ppo(n_train, database_writing):
     env = DummyVecEnv([lambda: env]) # maybe in the future make it so there can be multiple environments
     env = VecFrameStack(env, 4, channels_order='last')
 
-    model = PPO('CnnPolicy', env, verbose=2, learning_rate=LEARNING_RATE, n_steps=1024, batch_size=64, tensorboard_log=LOG_DIR)
+    model = PPO('CnnPolicy', env, verbose=2, learning_rate=LEARNING_RATE, n_steps=1024, batch_size=64, tensorboard_log=LOG_DIR, seed=0)
     model.learn(total_timesteps=n_train*1024, callback=callback, progress_bar=True)
 
 if __name__ == "__main__":

@@ -56,7 +56,7 @@ def fortissax() -> List[int]:
 
 def morgott() -> List[int]:
     talk_to_gideon([0, 6])
-    return [45110066]
+    return [21300534]
 
 def rykard() -> List[int]:
     talk_to_gideon([0, 7])
@@ -146,6 +146,7 @@ def godskin_noble() -> List[int]:
 
 def sirulia() -> List[int]:
     talk_to_gideon([1, 16])
+    key_press('w', 1)
     return [25001066]
 
 def mohg() -> List[int]:
@@ -167,6 +168,7 @@ def gideon() -> List[int]:
 
 def loretta_haligtree() -> List[int]:
     talk_to_gideon([1, 31])
+    key_press('w', 1)
     return [32520054]
 
 def tree_sentinel() -> List[int]:
@@ -175,7 +177,8 @@ def tree_sentinel() -> List[int]:
 
 def grafted_scion() -> List[int]:
     talk_to_gideon([2, 0, 8])
-    return [46900007]
+    key_press('w', 1)
+    return [46900008]
 
 def tree_sentinel_duo() -> List[int]:
     talk_to_gideon([2, 0, 26])
@@ -231,6 +234,7 @@ def messmer() -> List[int]:
 
 def midra() -> List[int]:
     talk_to_gideon([3, 7])
+    key_press('w', 1)
     return [50500086, 50510086]
 
 def romina() -> List[int]:

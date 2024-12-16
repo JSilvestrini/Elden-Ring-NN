@@ -106,7 +106,7 @@ def enter_boss(t: float = 1) -> None:
     Returns:
         None
     """
-    key_press('w', 1)
+    key_press('w', 2)
     key_press('e', 0.08)
     time.sleep(2.5)
     key_press('w', t)

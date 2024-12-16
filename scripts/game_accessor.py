@@ -22,6 +22,7 @@ player_addrs_loc = {
     "playerStamina": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x0, 0x154]},
     "playerMaxStamina": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x0, 0x158]},
     "playerAnimation": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x80, 0x90]},
+    "playerAnimationSpeed": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x28, 0x17C8]},
     "playerX": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x68, 0x70]},
     "playerY": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x68, 0x74]},
     "playerZ": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x68, 0x78]},
@@ -38,6 +39,7 @@ enemy_addrs_loc = {
     "health": {"offsets": [0x190, 0x0, 0x138]},
     "maxHealth": {"offsets": [0x190, 0x0, 0x13c]},
     "animation": {"offsets": [0x190, 0x18, 0x40]},
+    "animationSpeed": {"offsets": [0x190, 0x28, 0x17C8]},
     "x": {"offsets": [0x190, 0x68, 0x70]},
     "y": {"offsets": [0x190, 0x68, 0x74]},
     "z": {"offsets": [0x190, 0x68, 0x78]},
@@ -61,6 +63,9 @@ class GameAccessor:
 
     def clean(self) -> None:
         self.enemies = {}
+
+    def get_process_id(self) -> int:
+        return self.__process_id
 
     def find_bases(self) -> None:
         """
@@ -190,6 +195,11 @@ class GameAccessor:
 
         self.__is_paused = not self.__is_paused
 
+    def set_animation_speed(self, speed: float) -> None:
+        mm.write_memory_float(self.__process, player_addrs_loc["playerAnimationSpeed"]["address"], speed)
+        for e in self.enemies:
+            mm.write_memory_float(self.__process, self.enemies[e]["animationSpeed"], speed)
+
     def find_enemies(self, ids) -> None:
         #print(f"FINDING ENEMIES: {ids}")
         self.enemies = {} # remove old enemies incase there is a phase 2
@@ -289,7 +299,7 @@ class GameAccessor:
 if __name__ == "__main__":
     game = GameAccessor()
     game.reset()
-    game.find_enemies([34600913])
+    game.find_enemies([39701910])
 
     print(game.get_enemy_health())
     print(game.get_enemy_max_health())
@@ -298,3 +308,5 @@ if __name__ == "__main__":
     print(game.get_enemy_animation())
     print(game.get_enemy_coords())
     print(game.get_enemy_dead())
+
+    game.set_animation_speed(3.0)
