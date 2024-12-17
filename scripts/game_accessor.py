@@ -195,6 +195,19 @@ class GameAccessor:
 
         self.__is_paused = not self.__is_paused
 
+    def stake_of_marika(self) -> bool:
+        offsets =  [0x10ef8, 0x0, 0x178, 0x8]
+        addr = bases["WorldChrMan"]["address"]
+        for offset in offsets:
+            addr = mm.read_memory(self.__process, addr + offset)
+
+        temp = addr
+        for i in range(0, 15):
+            for _ in range(0, i):
+                temp = mm.read_memory(self.__process, temp + 0x30)
+            if mm.read_memory_int(self.__process, temp + 0x8) == 26:
+                return True
+
     def set_animation_speed(self, speed: float) -> None:
         mm.write_memory_float(self.__process, player_addrs_loc["playerAnimationSpeed"]["address"], speed)
         for e in self.enemies:
