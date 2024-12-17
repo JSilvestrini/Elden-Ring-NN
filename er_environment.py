@@ -452,7 +452,7 @@ class EldenRing(gymnasium.Env):
             er_helper.clean_keys()
             er_helper.key_press('q', .1)
 
-        #self.perform_action(action)
+        self.perform_action(action)
         self.update()
         self.screenshot()
         self.reward_function()
