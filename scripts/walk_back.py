@@ -190,9 +190,21 @@ def draconic_tree_sentinel() -> List[int]:
     talk_to_gideon([2, 0, 30])
     return [32500033]
 
+def black_knife_assassin() -> List[int]:
+    talk_to_gideon([2, 2, 0])
+    return [21001010]
+
 def burial_watchdog() -> List[int]:
     talk_to_gideon([2, 2, 1])
     return [42600110]
+
+def grave_warden_duelist() -> List[int]:
+    talk_to_gideon([2, 2, 2])
+    return [34001110]
+
+def cemetery_shade() -> List[int]:
+    talk_to_gideon([2, 2, 3])
+    return [36640012]
 
 def burial_watchdog_duo() -> List[int]:
     talk_to_gideon([2, 2, 11])
@@ -210,6 +222,22 @@ def beastman() -> List[int]:
     talk_to_gideon([2, 3, 1])
     return [39701910]
 
+def golem() -> List[int]:
+    talk_to_gideon([2, 3, 2])
+    return [46600910]
+
+def runebbear() -> List[int]:
+    talk_to_gideon([2, 3, 6])
+    return [46300912]
+
+def bloodhound_knight() -> List[int]:
+    talk_to_gideon([2, 3, 7])
+    return [42900920]
+
+def cleanrot_knight() -> List[int]:
+    talk_to_gideon([2, 3, 8])
+    return [38000920]
+
 def misbegotten_crusader() -> List[int]:
     talk_to_gideon([2, 3, 21])
     return [34601952]
@@ -218,9 +246,29 @@ def pumpkin_head() -> List[int]:
     talk_to_gideon([2, 4, 0])
     return [43400910]
 
+def troll() -> List[int]:
+    talk_to_gideon([2, 4, 1])
+    return [46030910]
+
+def scaly_misbegotten() -> List[int]:
+    talk_to_gideon([2, 4, 2])
+    return [34510912]
+
+def crystalian() -> List[int]:
+    talk_to_gideon([2, 4, 3])
+    return [33500920]
+
 def pumpkin_head_duo() -> List[int]:
     talk_to_gideon([2, 4, 6])
     return [43401940, 43400940]
+
+def crystalian_duo() -> List[int]:
+    talk_to_gideon([2, 4, 11])
+    return [33501930, 33500930]
+
+def onyx_lord() -> List[int]:
+    talk_to_gideon([2, 4, 12])
+    return [36001933]
 
 def dancing_lion() -> List[int]: 
     talk_to_gideon([3, 0])

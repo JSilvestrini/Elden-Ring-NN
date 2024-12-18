@@ -197,29 +197,35 @@ full_walk_backs = { # midra, check both forms [0005, 0006]
 }
 
 walk_backs = {
-    0: walk_back.godrick,
-    1: walk_back.morgott,
-    2: walk_back.maliketh,
-    3: walk_back.godfrey,
-    4: walk_back.leonine_misbegotten,
-    5: walk_back.red_wolf,
-    6: walk_back.elemer,
-    7: walk_back.mimic_tear,
-    8: walk_back.misbegotten_crucible_knight,
-    9: walk_back.mohg,
-    10: walk_back.grafted_scion,
-    11: walk_back.crucible_knight_duo,
-    12: walk_back.naill,
-    13: walk_back.soldier_godrick,
-    14: walk_back.beastman,
-    15: walk_back.misbegotten_crusader,
-    16: walk_back.dancing_lion,
-    17: walk_back.rellana,
-    18: walk_back.messmer,
-    19: walk_back.midra,
-    20: walk_back.romina,
-    21: walk_back.consort_radahn,
-    22: walk_back.ancient_dragon_man
+    0: walk_back.morgott,
+    1: walk_back.leonine_misbegotten,
+    2: walk_back.red_wolf,
+    3: walk_back.elemer,
+    4: walk_back.mimic_tear,
+    5: walk_back.misbegotten_crucible_knight,
+    6: walk_back.mohg,
+    7: walk_back.grafted_scion,
+    8: walk_back.black_knife_assassin,
+    9: walk_back.burial_watchdog,
+    10: walk_back.grave_warden_duelist,
+    11: walk_back.cemetery_shade,
+    12: walk_back.burial_watchdog_duo,
+    13: walk_back.crucible_knight_duo,
+    14: walk_back.naill,
+    15: walk_back.soldier_godrick,
+    16: walk_back.beastman,
+    17: walk_back.golem,
+    18: walk_back.bloodhound_knight,
+    19: walk_back.misbegotten_crusader,
+    20: walk_back.troll,
+    21: walk_back.scaly_misbegotten,
+    22: walk_back.crystalian,
+    23: walk_back.crystalian_duo,
+    24: walk_back.onyx_lord,
+    25: walk_back.dancing_lion,
+    26: walk_back.rellana,
+    27: walk_back.romina,
+    #28: walk_back.ancient_dragon_man
 }
 
 action_spaces = [simple_no_switch_action_space, simple_action_space, mid_no_switch_action_space, mid_action_space, complex_action_space]
@@ -286,8 +292,6 @@ class EldenRing(gymnasium.Env):
         state_time = time.time()
         while self.__game.loading_state():
             time.sleep(0.2)
-            if time.time() - state_time > 10:
-                self.__game.reset()
             if time.time() - state_time > 20:
                 break
 
@@ -296,7 +300,7 @@ class EldenRing(gymnasium.Env):
         self.__game.reset() # Reset when entering new area, just incase
         self.marika = self.__game.stake_of_marika()
 
-        self.speed = 2
+        self.speed = 3
         self.speed_hack.set_game_speed(self.speed)
 
         self.__game.clean()
@@ -438,27 +442,29 @@ class EldenRing(gymnasium.Env):
         # arbitrary delay to ensure that only 7 or so actions are performed per second
         time.sleep(0.12 / self.speed)
         # while in cut scene, wait, clean enemies, find enemies, need to update for phase 2 bosses
-        load = False
-        broken = False
+        # removed for now until workaround can be found
+        # TODO:
+        #load = False
+        #broken = False
 
-        while self.__game.loading_state():
-            for i in range(0, len(self.__game.enemies)):
-                if self.__game.get_enemy_coords()[i] != self.boss_coordinates[i]:
-                    broken = True
-                    break
-            if broken:
-                break
-            load = True
-            er_helper.key_press('esc', 0.2)
-            time.sleep(0.01)
+        #while self.__game.loading_state():
+        #    for i in range(0, len(self.__game.enemies)):
+        #        if self.__game.get_enemy_coords()[i] != self.boss_coordinates[i]:
+        #            broken = True
+        #            break
+        #    if broken:
+        #        break
+        #    load = True
+        #    er_helper.key_press('esc', 0.2)
+        #    time.sleep(0.01)
 
-        if load and not broken:
-            # this will check for the phase 2 enemy
-            self.__game.clean()
-            self.__game.find_enemies(self.enemy_id.copy())
-            print(self.__game.get_enemy_id())
-            er_helper.clean_keys()
-            er_helper.key_press('q', .1)
+        #if load and not broken:
+        #    # this will check for the phase 2 enemy
+        #    self.__game.clean()
+        #    self.__game.find_enemies(self.enemy_id.copy())
+        #    print(self.__game.get_enemy_id())
+        #    er_helper.clean_keys()
+        #    er_helper.key_press('q', .1)
 
         self.perform_action(action)
         self.update()
@@ -519,12 +525,16 @@ class EldenRing(gymnasium.Env):
             # if the player is dying still
 
             if self.marika:
-                time.sleep(2)
+                time.sleep(4)
                 er_helper.key_press('right', 0.1)
                 er_helper.key_press('e', 0.1)
 
+            state_begin = time.time()
             while self.__game.get_player_animation() in [17002, 18002]:
                 time.sleep(.2)
+                if time.time() - state_begin > 15:
+                    # sometimes the animation is sticky
+                    break
 
             time.sleep(2)
 
@@ -532,7 +542,7 @@ class EldenRing(gymnasium.Env):
             state_begin = time.time()
             while self.__game.loading_state():
                 time.sleep(0.2)
-                if time.time() - state_begin > 30:
+                if time.time() - state_begin > 20:
                     # sometimes the loading flag stays on when it shouldn't
                     break
 
