@@ -202,11 +202,14 @@ class GameAccessor:
             addr = mm.read_memory(self.__process, addr + offset)
 
         temp = addr
-        for i in range(0, 15):
-            for _ in range(0, i):
-                temp = mm.read_memory(self.__process, temp + 0x30)
-            if mm.read_memory_int(self.__process, temp + 0x8) == 26:
-                return True
+        try:
+            for i in range(0, 15):
+                for _ in range(0, i):
+                    temp = mm.read_memory(self.__process, temp + 0x30)
+                if mm.read_memory_int(self.__process, temp + 0x8) == 26:
+                    return True
+        except:
+            return False
 
     def set_animation_speed(self, speed: float) -> None:
         mm.write_memory_float(self.__process, player_addrs_loc["playerAnimationSpeed"]["address"], speed)

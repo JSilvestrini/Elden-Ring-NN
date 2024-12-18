@@ -86,7 +86,8 @@ table_names = [
     ("Boss_Animation_Usage", sql_create_boss_animation_usage),
 ]
 
-def create_database(con: sqlite3.Connection) -> None:
+def create_database() -> None:
+        con = sqlite3.connect("elden_ring.db")
         cur = con.cursor()
 
         for table_name, create_sql in table_names:
@@ -98,7 +99,9 @@ def create_database(con: sqlite3.Connection) -> None:
             except sqlite3.Error as e:
                 print(f"Error creating table {table_name}: {e}")
 
-def write_to_database_step_player(con: sqlite3.Connection, info: dict) -> None:
+        con.close()
+
+def write_to_database_step_player(info: dict) -> None:
     # use info and game to write to detailed run info
     dbstr = f"""
     INSERT INTO Detailed_Run_Info_Player (
@@ -123,10 +126,13 @@ def write_to_database_step_player(con: sqlite3.Connection, info: dict) -> None:
     );
     """
 
+    con = sqlite3.connect("elden_ring.db")
     cur = con.cursor()
     cur.execute(dbstr)
+    con.commit()
+    con.close()
 
-def write_to_database_step_boss(con: sqlite3.Connection,info: dict) -> None:
+def write_to_database_step_boss(info: dict) -> None:
     dbstr = f"""
     INSERT INTO Detailed_Run_Info_Boss (
     Run_Number,
@@ -148,10 +154,13 @@ def write_to_database_step_boss(con: sqlite3.Connection,info: dict) -> None:
     );
     """
 
+    con = sqlite3.connect("elden_ring.db")
     cur = con.cursor()
     cur.execute(dbstr)
+    con.commit()
+    con.close()
 
-def write_to_database_run(con: sqlite3.Connection, info: dict) -> None:
+def write_to_database_run(info: dict) -> None:
     # use info to write to run info
     # also write to bosses and increment attempts
     dbstr = f"""
@@ -171,10 +180,13 @@ def write_to_database_run(con: sqlite3.Connection, info: dict) -> None:
     );
     """
 
+    con = sqlite3.connect("elden_ring.db")
     cur = con.cursor()
     cur.execute(dbstr)
+    con.commit()
+    con.close()
 
-def increase_attempts(con: sqlite3.Connection, boss_id: int) -> None:
+def increase_attempts(boss_id: int) -> None:
     # use info to write to bosses
     dbstr = f"""
     INSERT INTO Bosses (boss_id, attempts) 
@@ -182,10 +194,13 @@ def increase_attempts(con: sqlite3.Connection, boss_id: int) -> None:
     ON CONFLICT(boss_id) DO UPDATE SET attempts = attempts + 1;
     """
 
+    con = sqlite3.connect("elden_ring.db")
     cur = con.cursor()
     cur.execute(dbstr)
+    con.commit()
+    con.close()
 
-def write_to_database_animations(con: sqlite3.Connection, info: dict) -> None:
+def write_to_database_animations(info: dict) -> None:
     dbstr = f"""
     INSERT INTO Boss_Animation_Usage (
     Animation_ID,
@@ -199,8 +214,11 @@ def write_to_database_animations(con: sqlite3.Connection, info: dict) -> None:
     ON CONFLICT(Animation_ID, Run_ID) DO UPDATE SET Usage = Usage + 1;
     """
 
+    con = sqlite3.connect("elden_ring.db")
     cur = con.cursor()
     cur.execute(dbstr)
+    con.commit()
+    con.close()
 
     dbstr = f"""
     INSERT INTO Animations (
@@ -213,17 +231,25 @@ def write_to_database_animations(con: sqlite3.Connection, info: dict) -> None:
     ON CONFLICT(Boss_ID, Animation_ID) DO UPDATE SET Total_Usage = Total_Usage + 1;
     """
 
+    con = sqlite3.connect("elden_ring.db")
     cur = con.cursor()
     cur.execute(dbstr)
+    con.commit()
+    con.close()
 
-def get_run_number(con: sqlite3.Connection, ) -> int:
+def get_run_number() -> int:
     # get the largest run number from run info table
+    con = sqlite3.connect("elden_ring.db")
     cur = con.cursor()
     cur.execute("SELECT COALESCE(MAX(Run_Number), 0) FROM Model_Run_Info;")
     run_number = cur.fetchone()[0]
+    con.close()
     return run_number
 
-def misc_query(con: sqlite3.Connection, query: str) -> None:
+def misc_query(query: str) -> None:
     # can pass in random queries
+    con = sqlite3.connect("elden_ring.db")
     cur = con.cursor()
     cur.execute(query)
+    con.commit()
+    con.close()

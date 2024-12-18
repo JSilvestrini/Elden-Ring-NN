@@ -114,11 +114,11 @@ def elemer() -> List[int]:
     talk_to_gideon([1, 8])
     return [31000931]
 
-# niall 31000931
-def oneil() -> List[int]:
+def naill() -> List[int]:
     # TODO: wrong param id
-    talk_to_gideon([1, 9])
-    return [31000931]
+    talk_to_gideon([1, 22])
+    key_press('w', 1)
+    return [30500051, 30107051, 30106051]
 
 def dragonkin_siofra() -> List[int]:
     talk_to_gideon([1, 10])
@@ -134,6 +134,7 @@ def mimic_tear() -> List[int]:
 
 def misbegotten_crucible_knight() -> List[int]:
     talk_to_gideon([1, 13])
+    key_press('w', 1)
     # misbegotten, knight
     return [34600941, 25000941]
 
@@ -200,6 +201,10 @@ def burial_watchdog_duo() -> List[int]:
 def crucible_knight_duo() -> List[int]:
     talk_to_gideon([2, 2, 20])
     return [25001933, 25000933]
+
+def soldier_godrick() -> List[int]:
+    talk_to_gideon([2, 3, 0])
+    return [43113906]
 
 def beastman() -> List[int]:
     talk_to_gideon([2, 3, 1])

@@ -202,25 +202,24 @@ walk_backs = {
     2: walk_back.maliketh,
     3: walk_back.godfrey,
     4: walk_back.leonine_misbegotten,
-    5: walk_back.dragonkin_nokstella,
-    6: walk_back.red_wolf,
-    7: walk_back.elemer,
-    8: walk_back.dragonkin_siofra,
-    9: walk_back.mimic_tear,
-    10: walk_back.misbegotten_crucible_knight,
-    11: walk_back.mohg,
-    12: walk_back.loretta_haligtree,
-    13: walk_back.grafted_scion,
-    14: walk_back.crucible_knight_duo,
-    15: walk_back.beastman,
-    16: walk_back.misbegotten_crusader,
-    17: walk_back.dancing_lion,
-    18: walk_back.rellana,
-    19: walk_back.messmer,
-    20: walk_back.midra,
-    21: walk_back.romina,
-    22: walk_back.consort_radahn,
-    23: walk_back.ancient_dragon_man
+    5: walk_back.red_wolf,
+    6: walk_back.elemer,
+    7: walk_back.mimic_tear,
+    8: walk_back.misbegotten_crucible_knight,
+    9: walk_back.mohg,
+    10: walk_back.grafted_scion,
+    11: walk_back.crucible_knight_duo,
+    12: walk_back.naill,
+    13: walk_back.soldier_godrick,
+    14: walk_back.beastman,
+    15: walk_back.misbegotten_crusader,
+    16: walk_back.dancing_lion,
+    17: walk_back.rellana,
+    18: walk_back.messmer,
+    19: walk_back.midra,
+    20: walk_back.romina,
+    21: walk_back.consort_radahn,
+    22: walk_back.ancient_dragon_man
 }
 
 action_spaces = [simple_no_switch_action_space, simple_action_space, mid_no_switch_action_space, mid_action_space, complex_action_space]
@@ -252,10 +251,8 @@ class EldenRing(gymnasium.Env):
         self.speed_hack = speedhack.SpeedHackConnector(self.__game.get_process_id())
 
         if self.__database_writing:
-            self.con = sqlite3.connect("elden_ring.db")
-            database_helper.create_database(self.con)
-            self.games = database_helper.get_run_number(self.con) if database_helper.get_run_number(self.con) > 0 else 0
-            self.con.close()
+            database_helper.create_database()
+            self.games = database_helper.get_run_number() if database_helper.get_run_number() > 0 else 0
 
         self.__game.reset()
 
@@ -284,16 +281,20 @@ class EldenRing(gymnasium.Env):
 
         if self.__database_writing:
             for i in range(0, len(self.enemy_id)):
-                self.con = sqlite3.connect("elden_ring.db")
-                database_helper.increase_attempts(self.con, self.enemy_id[i])
+                database_helper.increase_attempts(self.enemy_id[i])
 
+        state_time = time.time()
         while self.__game.loading_state():
             time.sleep(0.2)
-
-        self.__game.reset() # Reset when entering new area, just incase
+            if time.time() - state_time > 10:
+                self.__game.reset()
+            if time.time() - state_time > 20:
+                break
 
         time.sleep(1)
         er_helper.enter_boss()
+        self.__game.reset() # Reset when entering new area, just incase
+        self.marika = self.__game.stake_of_marika()
 
         self.speed = 2
         self.speed_hack.set_game_speed(self.speed)
@@ -373,11 +374,11 @@ class EldenRing(gymnasium.Env):
 
         if self.__database_writing:
             if self.player_animation != self.player_previous_animation:
-                database_helper.write_to_database_animations(self.con, {"Animation_ID": self.player_animation, "Run_Number": self.games, "Boss_ID": 0})
+                database_helper.write_to_database_animations({"Animation_ID": self.player_animation, "Run_Number": self.games, "Boss_ID": 0})
 
             for i in range(0, len(self.boss_animation)):
                 if self.boss_animation[i] != self.boss_previous_animation[i]:
-                    database_helper.write_to_database_animations(self.con, {"Animation_ID": self.boss_animation[i], "Run_Number": self.games, "Boss_ID": self.enemy_id[i]})
+                    database_helper.write_to_database_animations({"Animation_ID": self.boss_animation[i], "Run_Number": self.games, "Boss_ID": self.enemy_id[i]})
 
     def state(self):
         return self.__screenshot
@@ -438,13 +439,20 @@ class EldenRing(gymnasium.Env):
         time.sleep(0.12 / self.speed)
         # while in cut scene, wait, clean enemies, find enemies, need to update for phase 2 bosses
         load = False
+        broken = False
 
         while self.__game.loading_state():
+            for i in range(0, len(self.__game.enemies)):
+                if self.__game.get_enemy_coords()[i] != self.boss_coordinates[i]:
+                    broken = True
+                    break
+            if broken:
+                break
             load = True
             er_helper.key_press('esc', 0.2)
             time.sleep(0.01)
 
-        if load:
+        if load and not broken:
             # this will check for the phase 2 enemy
             self.__game.clean()
             self.__game.find_enemies(self.enemy_id.copy())
@@ -461,7 +469,8 @@ class EldenRing(gymnasium.Env):
 
         if self.time_step_total % self.n_steps == 0 and self.time_step_total > 1:
             truncated = True
-            self.__game.kill_player()
+            if not self.__game.player_in_roundtable():
+                self.__game.kill_player()
             er_helper.clean_keys()
 
         if self.__database_writing and self.time_step_run % 4 == 0:
@@ -484,8 +493,8 @@ class EldenRing(gymnasium.Env):
                     "bAnimation": self.boss_animation[i]
                 }
 
-                database_helper.write_to_database_step_boss(self.con, step_info)
-            database_helper.write_to_database_step_player(self.con, step_info)
+                database_helper.write_to_database_step_boss(step_info)
+            database_helper.write_to_database_step_player(step_info)
 
         if done or truncated:
             er_helper.clean_keys()
@@ -502,16 +511,14 @@ class EldenRing(gymnasium.Env):
                         "Victory": (self.player_current_health > 0)
                     }
 
-                    database_helper.write_to_database_run(self.con, run_info)
-                self.con.commit()
-                self.con.close()
+                    database_helper.write_to_database_run(run_info)
 
             # wait for player to start animation
             time.sleep(4)
             # player dying animations
             # if the player is dying still
 
-            if self.__game.stake_of_marika():
+            if self.marika:
                 time.sleep(2)
                 er_helper.key_press('right', 0.1)
                 er_helper.key_press('e', 0.1)
@@ -522,8 +529,12 @@ class EldenRing(gymnasium.Env):
             time.sleep(2)
 
             # if player is in loading screen
+            state_begin = time.time()
             while self.__game.loading_state():
                 time.sleep(0.2)
+                if time.time() - state_begin > 30:
+                    # sometimes the loading flag stays on when it shouldn't
+                    break
 
         self.time_step_run += 1
         self.time_step_total += 1
