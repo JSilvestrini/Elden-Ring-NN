@@ -86,6 +86,11 @@ table_names = [
     ("Boss_Animation_Usage", sql_create_boss_animation_usage),
 ]
 
+def validate_data(data: dict) -> None:
+    for key in data:
+        if data[key] is None:
+            data[key] = 'NULL'
+
 def create_database() -> None:
         con = sqlite3.connect("elden_ring.db")
         cur = con.cursor()

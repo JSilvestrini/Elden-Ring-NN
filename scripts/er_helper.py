@@ -6,6 +6,7 @@ import os
 import json
 
 PREV_ACTION = []
+game_speed : float = 1
 
 def find_activate_window() -> None:
     """
@@ -44,9 +45,9 @@ def key_presses(keys: list) -> None:
     """
     for i in keys:
         pydirectinput.keyDown(i, _pause=False)
-        time.sleep(0.08)
+        time.sleep(0.08 / game_speed)
         pydirectinput.keyUp(i, _pause=False)
-        time.sleep(0.08)
+        time.sleep(0.08 / game_speed)
 
 def clean_keys() -> None:
     """
@@ -92,9 +93,9 @@ def key_press(key: str, t: float) -> None:
         None
     """
     pydirectinput.keyDown(key, _pause=False)
-    time.sleep(t)
+    time.sleep(t / game_speed)
     pydirectinput.keyUp(key, _pause=False)
-    time.sleep(0.08)
+    time.sleep(0.08 / game_speed)
 
 def enter_boss(t: float = 1) -> None:
     """
@@ -108,6 +109,6 @@ def enter_boss(t: float = 1) -> None:
     """
     key_press('w', 2)
     key_press('e', 0.08)
-    time.sleep(2.5)
+    time.sleep(2.5 / game_speed)
     key_press('w', t)
     key_press('q', 0.08)

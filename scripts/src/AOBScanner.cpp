@@ -34,11 +34,11 @@ static intptr_t AOBScan(int pid, const char* moduleName, intptr_t processAddress
 
     HMODULE hMods[1024];
     DWORD cbNeeded;
-    int i;
+    int i = 0;
 
     // Find the base module for the game
     if (EnumProcessModules(hProcess, hMods, sizeof(hMods), &cbNeeded)) {
-        for (i = 0; i < cbNeeded / sizeof(HMODULE); i++) {
+        for (i; i < cbNeeded / sizeof(HMODULE); i++) {
             WCHAR szModName[MAX_PATH];
             if (GetModuleFileNameExW(hProcess, hMods[i], szModName, MAX_PATH)) {
                 // Convert the wide character string to a narrow character string if needed
@@ -60,15 +60,15 @@ static intptr_t AOBScan(int pid, const char* moduleName, intptr_t processAddress
 
     // Get the size and base address of the module (the base address is not used in this case)
     MODULEINFO modInfo = {0};
-    DWORD64 moduleBaseAddress;
-    DWORD64 moduleSize;
+    DWORD64 moduleBaseAddress = NULL;
+    DWORD64 moduleSize = NULL;
 
     if (GetModuleInformation(hProcess, hMods[i], &modInfo, sizeof(modInfo))) {
         moduleBaseAddress = (DWORD64)modInfo.lpBaseOfDll;
         moduleSize = modInfo.SizeOfImage;
     }
 
-    if (moduleBaseAddress) {
+    if (moduleBaseAddress != NULL) {
         std::vector<byte> data(moduleSize);
         SIZE_T bytesRead = 0;
         DWORD oldProtect;

@@ -42,7 +42,8 @@ def train_ppo(n_train, database_writing):
     env = VecFrameStack(env, 4, channels_order='last')
 
     model = PPO('CnnPolicy', env, verbose=2, learning_rate=LEARNING_RATE, n_steps=1024, batch_size=64, tensorboard_log=LOG_DIR, seed=0)
-    model.learn(total_timesteps=n_train*1024, callback=callback, progress_bar=True)
+    model.load("./model/game_1718.zip")
+    model.learn(total_timesteps=(n_train*1024), callback=callback, progress_bar=True)
 
 if __name__ == "__main__":
     # TODO: Make some arg flags -d for database -t for timesteps

@@ -3,13 +3,13 @@ from scripts import er_helper
 from scripts import database_helper
 from scripts import walk_back
 from scripts import speedhack
-import sqlite3
+import sqlite3 # Delete this
 import dxcam
 import time
 import numpy as np
 import cv2
 import gymnasium
-import random
+import random # Delete this
 
 '''
 forward             - w
@@ -156,47 +156,7 @@ complex_action_space = {
     26: ['r'],          # use item
 }
 
-full_walk_backs = { # midra, check both forms [0005, 0006]
-    # more will be added, I have these for now
-    # since I have screenshots of their arenas
-    0: walk_back.godrick,
-    1: walk_back.morgott,
-    2: walk_back.maliketh,
-    3: walk_back.godfrey,
-    4: walk_back.leonine_misbegotten,
-    5: walk_back.margit,
-    6: walk_back.dragonkin_nokstella,
-    7: walk_back.red_wolf,
-    8: walk_back.loretta,
-    9: walk_back.makar,
-    10: walk_back.elemer,
-    11: walk_back.dragonkin_siofra,
-    12: walk_back.mimic_tear,
-    13: walk_back.misbegotten_crucible_knight,
-    14: walk_back.goldfrey,
-    15: walk_back.godskin_noble,
-    16: walk_back.mohg,
-    17: walk_back.godskin_apostle,
-    18: walk_back.gideon,
-    19: walk_back.loretta_haligtree,
-    20: walk_back.grafted_scion,
-    21: walk_back.burial_watchdog,
-    22: walk_back.burial_watchdog_duo,
-    23: walk_back.crucible_knight_duo,
-    24: walk_back.beastman,
-    25: walk_back.misbegotten_crusader,
-    26: walk_back.dancing_lion,
-    27: walk_back.rellana,
-    28: walk_back.messmer,
-    29: walk_back.midra,
-    30: walk_back.romina,
-    31: walk_back.consort_radahn,
-    32: walk_back.death_knight,
-    33: walk_back.ancient_dragon_man,
-    34: walk_back.death_knight_rauh
-}
-
-walk_backs = {
+full_walk_backs = {
     0: walk_back.morgott,
     1: walk_back.leonine_misbegotten,
     2: walk_back.red_wolf,
@@ -215,17 +175,28 @@ walk_backs = {
     15: walk_back.soldier_godrick,
     16: walk_back.beastman,
     17: walk_back.golem,
-    18: walk_back.bloodhound_knight,
-    19: walk_back.misbegotten_crusader,
-    20: walk_back.troll,
-    21: walk_back.scaly_misbegotten,
-    22: walk_back.crystalian,
-    23: walk_back.crystalian_duo,
-    24: walk_back.onyx_lord,
-    25: walk_back.dancing_lion,
-    26: walk_back.rellana,
-    27: walk_back.romina,
-    #28: walk_back.ancient_dragon_man
+    18: walk_back.misbegotten_crusader,
+    19: walk_back.troll,
+    20: walk_back.scaly_misbegotten,
+    21: walk_back.crystalian,
+    22: walk_back.crystalian_duo,
+    23: walk_back.onyx_lord,
+    24: walk_back.dancing_lion,
+    25: walk_back.rellana,
+    26: walk_back.romina,
+}
+
+walk_backs = {
+    0: walk_back.soldier_godrick,
+    1: walk_back.beastman,
+    2: walk_back.scaly_misbegotten,
+    3: walk_back.leonine_misbegotten,
+    #4: walk_back.black_knife_assassin,
+    4: walk_back.burial_watchdog,
+    5: walk_back.grave_warden_duelist,
+    6: walk_back.margit,
+    7: walk_back.crystalian,
+    8: walk_back.crystalian_duo
 }
 
 action_spaces = [simple_no_switch_action_space, simple_action_space, mid_no_switch_action_space, mid_action_space, complex_action_space]
@@ -255,21 +226,45 @@ class EldenRing(gymnasium.Env):
         self.end_time = 0
 
         self.speed_hack = speedhack.SpeedHackConnector(self.__game.get_process_id())
+        self.speed = 3
+        walk_back.game_speed = self.speed
+        er_helper.game_speed = self.speed
+        self.speed_hack.set_game_speed(self.speed)
 
         if self.__database_writing:
             database_helper.create_database()
-            self.games = database_helper.get_run_number() if database_helper.get_run_number() > 0 else 0
+            self.games = database_helper.get_run_number() + 1 if database_helper.get_run_number() > 0 else 0
 
         self.__game.reset()
 
-    def reset(self, seed=0, options=0) -> None:
-        if not self.__game.player_in_roundtable():
-            self.__game.kill_player()
-            time.sleep(10)
-        time.sleep(4)
+    def begin_boss(self):
+        # try and start the boss,
+        # if too much time has ellapsed since
+        # 'walkback' and the 'enemy' being missing,
+        # kill player, start again
 
-        self.speed = 1
-        self.speed_hack.set_game_speed(self.speed)
+        boss_num = int(str(self.games)[0])
+        func = walk_backs[(boss_num - 1)]
+        self.enemy_id = func()
+        #time.sleep(15 / self.speed)
+        self.__game.reset() # Reset when entering new area, just incase
+
+        time.sleep(2)
+
+    def kill_player(self):
+        self.__game.kill_player()
+        if self.marika:
+            time.sleep(8)
+            er_helper.key_press('right', 0.08)
+            er_helper.key_press('e', 0.08)
+        time.sleep(10)
+
+    def reset(self, seed=0, options=0) -> None:
+        self.win = False
+        if not self.__game.player_in_roundtable():
+        #    self.__game.kill_player()
+            time.sleep(12)
+        time.sleep(4)
 
         # after n games change the walkback function, maybe 1k then 10k then 100k
         self.reward = 0
@@ -277,36 +272,39 @@ class EldenRing(gymnasium.Env):
         self.games += 1
         print(f"RESET CALLED: GAME {self.games} STARTING...")
         er_helper.clean_keys()
-        self.__game.reset() # Reset when entering new area
+        #self.__game.reset() # Reset when entering new area
 
         #if self.games > 0:
         #    print(f"Actions per Second: {self.time_step / (self.end_time - self.begin_time)}")
 
-        func = walk_backs[random.randint(0, len(walk_backs) - 1)]
-        self.enemy_id = func()
+        #if self.__game.loading_state():
+
+        while True:
+            self.__game.clean()
+            self.begin_boss()
+            self.marika = self.__game.stake_of_marika()
+            search_timer = time.time()
+
+            while self.__game.enemies == {}:
+                time.sleep(0.02)
+                self.__game.find_enemies(self.enemy_id.copy())
+
+                if time.time() - search_timer > 1:
+                    self.kill_player()
+                    break
+
+            if self.__game.enemies != {}:
+                idle_anim = self.__game.get_enemy_animation()
+                er_helper.enter_boss()
+                time.sleep(1.2 / self.speed)
+                if self.__game.get_enemy_animation() == idle_anim:
+                    self.kill_player()
+                else:
+                    break
 
         if self.__database_writing:
             for i in range(0, len(self.enemy_id)):
                 database_helper.increase_attempts(self.enemy_id[i])
-
-        state_time = time.time()
-        while self.__game.loading_state():
-            time.sleep(0.2)
-            if time.time() - state_time > 20:
-                break
-
-        time.sleep(1)
-        er_helper.enter_boss()
-        self.__game.reset() # Reset when entering new area, just incase
-        self.marika = self.__game.stake_of_marika()
-
-        self.speed = 3
-        self.speed_hack.set_game_speed(self.speed)
-
-        self.__game.clean()
-        while self.__game.enemies == {}:
-            time.sleep(0.02)
-            self.__game.find_enemies(self.enemy_id.copy())
 
         self.screenshot()
         self.reset_ground_truth()
@@ -399,10 +397,10 @@ class EldenRing(gymnasium.Env):
         # punish for taking damage
         if self.player_current_health < self.player_previous_health:
             self.take_damage_timer = time.time()
-            self.reward -= (1 + ((self.player_previous_health - self.player_current_health) / self.player_max_health))
+            self.reward -= (3 + ((self.player_previous_health - self.player_current_health) / self.player_max_health))
 
-        if time.time() - self.deal_damage_timer > (15 / self.speed):
-            self.reward -= (1 + (time.time() - self.deal_damage_timer - (15 / self.speed)) / 10)
+        if time.time() - self.deal_damage_timer > (12 / self.speed):
+            self.reward -= (1 + (time.time() - self.deal_damage_timer - (12 / self.speed)) / 10)
 
     def complex_reward(self) -> None:
         self.simple_reward()
@@ -413,17 +411,17 @@ class EldenRing(gymnasium.Env):
 
         if self.player_current_health > self.player_previous_health:
             # reward for healing
-            self.reward += (1 + ((self.player_current_health - self.player_previous_health) / self.player_max_health))
+            self.reward += (3 + ((self.player_current_health - self.player_previous_health) / self.player_max_health))
 
             # punish if healing way too early, lvl 1 flask heals 250, so if missing ou
             # on more than 75 potential hp, punish
             # 175 is an arbitrary number in this case
             if self.player_current_health - self.player_previous_health < 175:
-                self.reward -= (1 + (250 - (self.player_current_health - self.player_previous_health)) / 175)
+                self.reward -= (3 + (250 - (self.player_current_health - self.player_previous_health)) / 175)
 
         # reward if avoiding damage for more than 15 seconds
-        if time.time() - self.take_damage_timer > (15 / self.speed):
-            self.reward += (1 + (time.time() - self.take_damage_timer) / (15 / self.speed))
+        if time.time() - self.take_damage_timer > (12 / self.speed):
+            self.reward += (1 + (time.time() - self.take_damage_timer) / (12 / self.speed))
 
     def done(self) -> bool:
         if self.__game.get_player_dead():
@@ -435,12 +433,12 @@ class EldenRing(gymnasium.Env):
                 return False
 
         self.reward += 10
-
+        self.win = True
         return True
 
     def step(self, action):
         # arbitrary delay to ensure that only 7 or so actions are performed per second
-        time.sleep(0.12 / self.speed)
+        time.sleep(0.10 / (self.speed * self.speed))
         # while in cut scene, wait, clean enemies, find enemies, need to update for phase 2 bosses
         # removed for now until workaround can be found
         # TODO:
@@ -467,7 +465,8 @@ class EldenRing(gymnasium.Env):
         #    er_helper.key_press('q', .1)
 
         self.perform_action(action)
-        self.update()
+        if not (self.time_step_total % self.n_steps == 0 and self.time_step_total > 1):
+            self.update()
         self.screenshot()
         self.reward_function()
         done = self.done()
@@ -521,30 +520,26 @@ class EldenRing(gymnasium.Env):
 
             # wait for player to start animation
             time.sleep(4)
-            # player dying animations
-            # if the player is dying still
 
-            if self.marika:
-                time.sleep(4)
-                er_helper.key_press('right', 0.1)
-                er_helper.key_press('e', 0.1)
+            if not self.win:
+                if self.marika:
+                    time.sleep(8)
+                    er_helper.key_press('right', 0.1)
+                    er_helper.key_press('e', 0.1)
 
-            state_begin = time.time()
-            while self.__game.get_player_animation() in [17002, 18002]:
-                time.sleep(.2)
-                if time.time() - state_begin > 15:
-                    # sometimes the animation is sticky
-                    break
+                state_begin = time.time()
 
-            time.sleep(2)
+                while self.__game.get_player_animation() in [17002, 18002]:
+                    time.sleep(.2)
+                    if time.time() - state_begin > 15:
+                        # sometimes the animation is sticky
+                        break
+
+                time.sleep(2)
 
             # if player is in loading screen
-            state_begin = time.time()
-            while self.__game.loading_state():
-                time.sleep(0.2)
-                if time.time() - state_begin > 20:
-                    # sometimes the loading flag stays on when it shouldn't
-                    break
+            # if self.__game.loading_state():
+            time.sleep(15)
 
         self.time_step_run += 1
         self.time_step_total += 1

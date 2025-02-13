@@ -1,20 +1,25 @@
 from scripts.er_helper import key_press, key_presses, find_activate_window, enter_boss
+import pydirectinput
 import time
 from typing import List
+
+game_speed : float
 
 def talk_to_gideon(slots: list) -> None:
     find_activate_window()
     time.sleep(.2)
-    key_press('e', 0.3)
+    key_press('e', 0.1)
     time.sleep(0.3)
-    key_press('e', 0.3)
+    key_press('e', 0.1)
     time.sleep(0.1)
     for i in slots:
+        pydirectinput.keyDown('shift', _pause=False)
         key_presses(['down'] * i)
+        pydirectinput.keyUp('shift', _pause=False)
         time.sleep(0.08)
-        key_press('e', 0.2)
+        key_press('e', 0.1)
         time.sleep(0.1)
-    time.sleep(8)
+    time.sleep(12)
 
 def test_func() -> None:
     find_activate_window()
@@ -84,6 +89,8 @@ def leonine_misbegotten() -> List[int]:
 
 def margit() -> List[int]:
     talk_to_gideon([1, 1])
+    key_press('4', .16)
+    key_press('w', .08)
     return [21300014]
 
 def dragonkin_nokstella() -> List[int]:
@@ -117,7 +124,7 @@ def elemer() -> List[int]:
 def naill() -> List[int]:
     # TODO: wrong param id
     talk_to_gideon([1, 22])
-    key_press('w', 1)
+    key_press('w', 1 / game_speed)
     return [30500051, 30107051, 30106051]
 
 def dragonkin_siofra() -> List[int]:
@@ -134,7 +141,7 @@ def mimic_tear() -> List[int]:
 
 def misbegotten_crucible_knight() -> List[int]:
     talk_to_gideon([1, 13])
-    key_press('w', 1)
+    key_press('w', 1 / game_speed)
     # misbegotten, knight
     return [34600941, 25000941]
 
