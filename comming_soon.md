@@ -1,12 +1,22 @@
 - TODO: Multiple Observation Spaces, CNN and Ground Truth
-- TODO: Get moving on Streamlit or whatever
-- TODO: Fix Agent File, Create a Run file, take user options to choose reward, action, and observation space
-
-- TODO: Check arena images, map to coordinates, live drawing functions for data viewing and analysis
-- TODO: Check out PyQT6 or PySide6 for making the GUI instead of Streamlit
-- TODO: Add More Bosses
-- TODO: Add More Walk Backs
-- TODO: Work on Phase 2 Bosses (Cutscenes)
-    - Godfrey, Messmer, Midra, etc.
-- TODO: Coordinate to Pixelspace Conversion per image
-- TODO: More Images
+- TODO: Refactor Environment
+- TODO: Create custom PyMem equivalent library
+    - Running into memory read errors when there should not be
+    - TODO: Remove memory_access.py, legacy file
+- TODO: Make boss walkbacks more boss-specific
+    - Could reduce training time by removing excess loading screens
+    - TODO: Remove walk_back.py, legacy file
+- TODO: Memory dig through Elden Ring for cutscene flags
+    - TODO: Adjust environment accordingly
+- TODO: Make it so a model fights one boss instead of multiple
+- TODO: Adjust rewards
+    - TODO: Bonus for middle arena (Boss-Specific)
+    - TODO: Punish for Bad flask use
+- TODO: Update ReadME Accordingly
+    - TODO: Make sure speedhack + .dll is credited to original author
+- TODO: Work on database-related files (Stretch)
+    - TODO: Streamlit or Qt6 application
+        - take data, show buckets of information
+        - correlate boss animation on distance
+        - take map image and show death points
+- TODO: Begin training AI more
