@@ -20,3 +20,4 @@
         - correlate boss animation on distance
         - take map image and show death points
 - TODO: Begin training AI more
+- TODO: ADD IN A PYTHON DOWNLOAD FILE
