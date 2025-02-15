@@ -162,25 +162,43 @@ std::vector<unsigned char> readBytes(int pid, intptr_t address, int n) {
     return ret;
 }
 
-bool writeBytes(int pid, int offset, int n, const std::vector<unsigned char>& bytes) {return false;}
+bool writeBytes(int pid, intptr_t address, int n, const std::vector<unsigned char>& bytes) {
+    DWORD processID = (DWORD)pid;
+    HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, processID);
 
-//int readInteger(int pid, int offset) {}
-//bool writeInteger(int pid, int offset, const int num) {}
+    // Ensures that Elden Ring is running
+    if (!hProcess) {
+        std::cout << "Failed to open process" << std::endl;
+        return false;
+    }
 
-//float readFloat(int pid, int offset) {}
-//bool writeFloat(int pid, int offset, const float num) {}
+    unsigned char* buffer = new unsigned char[n];
+    std::copy(bytes.begin(), bytes.end(), buffer);
+    SIZE_T bytesWritten;
 
-//double readDouble(int pid, int offset) {}
-//bool writeDouble(int pid, int offset, const double num) {}
+    WriteProcessMemory(hProcess, (LPVOID)(address), buffer, n, &bytesWritten);
 
-//long readLong(int pid, int offset) {}
-//bool writeLong(int pid, int offset, const long num) {}
+    delete buffer;
+    return bytesWritten == n;
+}
 
-//long long readLongLong(int pid, int offset) {}
-//bool writeLongLong(int pid, int offset, const long long num) {}
+//int readInteger(int pid, int address) {}
+//bool writeInteger(int pid, int address, const int num) {}
 
-//short readShort(int pid, int offset) {}
-//bool writeShort(int pid, int offset, const short num) {}
+//float readFloat(int pid, int address) {}
+//bool writeFloat(int pid, int address, const float num) {}
+
+//double readDouble(int pid, int address) {}
+//bool writeDouble(int pid, int address, const double num) {}
+
+//long readLong(int pid, int address) {}
+//bool writeLong(int pid, int address, const long num) {}
+
+//long long readLongLong(int pid, int address) {}
+//bool writeLongLong(int pid, int address, const long long num) {}
+
+//short readShort(int pid, int address) {}
+//bool writeShort(int pid, int address, const short num) {}
 
 PYBIND11_MODULE(AOBScanner, m) {
     m.def("AOBScan", &AOBScan);

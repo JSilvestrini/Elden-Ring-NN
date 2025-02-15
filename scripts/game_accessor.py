@@ -189,7 +189,23 @@ class GameAccessor:
         """
         return mm.read_memory_bytes(self.__process, player_addrs_loc["cutsceneLoading"]["address"], 1, _asInt = True)
 
+    def pause_game_CUSTOM(self) -> None:
+        """
+        Pauses and unpauses the game physics
 
+        Args:
+            None
+
+        Returns:
+            None
+        """
+
+        if self.__is_paused:
+            AOBScanner.writeBytes(self.__process_id, self.__physics_pointer + 0x6, 1, [int('0', 16)])
+        else:
+            AOBScanner.writeBytes(self.__process_id, self.__physics_pointer + 0x6, 1, [int('1', 16)])
+
+        self.__is_paused = not self.__is_paused
 
     def pause_game(self) -> None:
         """
@@ -327,9 +343,4 @@ class GameAccessor:
         return dead
 
 if __name__ == "__main__":
-    game = GameAccessor()
-    print(player_addrs_loc["cutsceneLoading"]["address"])
-    print("HERE")
-    print(game.loading_state_CUSTOM())
-    print("HERE@")
-    print(game.loading_state())
+    pass
