@@ -15,7 +15,7 @@ find_package(pybind11 REQUIRED)
 
 pybind11_add_module(AOBScanner SHARED src/AOBScanner.cpp)
 
-set_target_properties(AOBScanner PROPERTIES CXX_STANDARD 11 CXX_STANDARD_REQUIRED ON)
+set_target_properties(AOBScanner PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
 
 set(INIT_PY "${CMAKE_CURRENT_BINARY_DIR}/__init__.py")
 if(NOT EXISTS ${INIT_PY})

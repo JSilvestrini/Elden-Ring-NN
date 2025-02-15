@@ -1,5 +1,5 @@
-import scripts.memory_access as mm
-from scripts.build import AOBScanner
+import memory_access as mm
+from build import AOBScanner
 import pymem
 import pymem.process
 import struct
@@ -165,7 +165,7 @@ class GameAccessor:
             mm.write_memory_int(self.__process, player_addrs_loc["playerGravity"]["address"], 0)
             self.__gravity = True
 
-    def loading_state(self) -> bool:
+    def loading_state_CUSTOM(self):
         """
         Reads the cutsceneLoading pointer and returns True if the game is in a cutscene/loading state
 
@@ -175,7 +175,21 @@ class GameAccessor:
         Returns:
             True if game is in cutscene/loading state, False otherwise (bool)
         """
-        return (mm.read_memory_bytes(self.__process, player_addrs_loc["cutsceneLoading"]["address"], 1, True) != 0)
+        return AOBScanner.readBytes(self.__process_id, player_addrs_loc["cutsceneLoading"]["address"], 1)
+
+    def loading_state(self):
+        """
+        Reads the cutsceneLoading pointer and returns True if the game is in a cutscene/loading state
+
+        Args:
+            None
+
+        Returns:
+            True if game is in cutscene/loading state, False otherwise (bool)
+        """
+        return mm.read_memory_bytes(self.__process, player_addrs_loc["cutsceneLoading"]["address"], 1, _asInt = True)
+
+
 
     def pause_game(self) -> None:
         """
@@ -314,15 +328,8 @@ class GameAccessor:
 
 if __name__ == "__main__":
     game = GameAccessor()
-    game.reset()
-    game.find_enemies([39701910])
-
-    print(game.get_enemy_health())
-    print(game.get_enemy_max_health())
-    print(game.get_enemy_id())
-    print(game.get_global_id(True))
-    print(game.get_enemy_animation())
-    print(game.get_enemy_coords())
-    print(game.get_enemy_dead())
-
-    game.set_animation_speed(3.0)
+    print(player_addrs_loc["cutsceneLoading"]["address"])
+    print("HERE")
+    print(game.loading_state_CUSTOM())
+    print("HERE@")
+    print(game.loading_state())

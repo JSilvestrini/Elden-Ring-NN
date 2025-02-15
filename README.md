@@ -27,6 +27,8 @@ Once the environment is finished and the agent begins training, the repo will be
 
 ### Python
 
+As a lazy developer, I do not have any virtual environments on my machine that could make installing this repository quick and easy. Below is a list of the dependencies that I can think of that are required for the repository to run. Once the repository has been refactored, I may add in a list that can be used for a quick installation.
+
 -   streamlit
 -   json
 -   pymem
@@ -68,7 +70,7 @@ You need at least version 3.10 of CMake to use the file that is included, but yo
 
 `python .\run.py <time_steps> <database>`
 
-`time_steps` refers to the number of time steps to allow the agent to train. The default is 1000, and the agent will train for a total of `time_steps * 1000` to ensure that the agent trains for long enough.
+`time_steps` refers to the number of time steps to allow the agent to train. The default is 1000, and the agent will train for a total of `time_steps * 1024` to ensure that the agent trains for long enough. On my local setup, setting this number to 20 has the model train for around 4 hours. A model is saved every `20 * 1024` time steps since they are around 2-3 gigabytes in size.
 
 `database` is a boolean and is false by default. If true, it will create the database and begin reading and writing to it. If the program is terminated and ran again, in order to use the database this boolean must be set.
 
@@ -90,7 +92,7 @@ This file contains some of the random functions that would be needed in multiple
 
 ### game_access.py
 
-This file is used heavily by the environment to retrieve information about the game state. This file relies on memory_access and communication through files with Cheat Engine. It finds pointers to values that are in Elden Ring's memory and stores those pointers so the environment can use the get functions to retrieve the values at those locations. It also has the ability to pause the game (please note that Elden Ring is normally not able to be paused).
+This file is used heavily by the environment to retrieve information about the game state. This file relies on memory_access and communication through files with Cheat Engine. It finds pointers to values that are in Elden Ring's memory and stores those pointers so the environment can use the get functions to retrieve the values at those locations. It also has the ability to pause the game (please note that Elden Ring is normally not able to be paused) This is meant for slower hardware so the game can be paused during agent play to give time to choose an action (this is currently unimplemented).
 
 ### memory_access.py
 
@@ -98,7 +100,7 @@ This file was made to easily access pointers and memory addresses that were retr
 
 ### speedhack.py
 
-This is heavily based on the code from soulsgym and allows the physics engine to run faster rather than just the animation speed being faster. This allows for accelerated training since running multiple instances of Elden Ring is not doable at the moment.
+This is heavily based on the code from **[SoulsGym](https://github.com/amacati/SoulsGym/tree/master)** and allows the physics engine to run faster rather than just the animation speed being faster. This allows for accelerated training since running multiple instances of Elden Ring is not doable at the moment. There is also a .dll file that was lifted from the same repo that works with this file.
 
 ### walk_back.py
 
@@ -110,7 +112,7 @@ This file allows the AI to easily get back to different boss arenas using the El
 
 **[Elden Ring FPS](https://github.com/Dasaav-dsv/erfps/tree/master)**
 
-This repository, along with the Hexington Cheat Engine table, gave information over where to find pointers and what AOB to try and search for within the main module. Once I noticed that pymem was failing to find patterns, this repo was the inspiration for utilizing C++ with Python to create a (semi) efficient AOB scanner, though no code was used from the AOB files that are available.
+This repository, along with the Hexington Cheat Engine table, gave information over where to find pointers and what AOB to try and search for within the main module. Once I noticed that pymem was failing to find patterns, this repo was the inspiration for utilizing C++ with Python to create an AOB scanner, though no code was used from the AOB files that are available.
 
 **[SoulsGym](https://github.com/amacati/SoulsGym/tree/master)**
 
@@ -118,7 +120,7 @@ This repository contains a goldmine of information, and pointed me towards one o
 
 **[Hexington Cheat Engine](https://www.nexusmods.com/eldenring/mods/48)**
 
-This cheat table contains all AOB searches that I used, as well as information on other locations within memory that I could have never found myself. I used the AOB patterns as well as a modified version of their NPC Selector algorithm that was used to populate a table (in my case I used it to find the proper enemies to track).
+This cheat table contains all AOB searches that I used, as well as information on other locations within memory that I would have never found myself. I used the AOB patterns as well as a modified version of their NPC Selector algorithm that was used to populate a table (in my case I used it to find the proper enemies to track). It was also very useful for debugging purposes and finding flags within the game to perform checks.
 
 This table was an invaluable resource.
 <!-- 

@@ -9,7 +9,7 @@
 #include <debugapi.h>
 
 /**
- * @brief Scans a given chunk of data for the given pattern and mask.
+ * @brief               Scans a given chunk of data for the given pattern and mask.
  *
  * @param data          The data to scan within for the given pattern.
  * @param baseAddress   The base address of where the scan data is from.
@@ -18,7 +18,7 @@
  * @param offset        The offset to add to the pointer.
  * @param resultUsage   The result offset to use when locating signatures that match multiple functions.
  *
- * @return Pointer of the pattern found, 0 otherwise.
+ * @return              Pointer of the pattern found, 0 otherwise.
  */
 static intptr_t AOBScan(int pid, const char* moduleName, intptr_t processAddress, const std::vector<uint8_t>& lpPattern, const char* pszMask, intptr_t offset, intptr_t resultUsage) {
     DWORD processID = (DWORD)pid;
@@ -79,7 +79,7 @@ static intptr_t AOBScan(int pid, const char* moduleName, intptr_t processAddress
             return 0;
         }
 
-        if (ReadProcessMemory(hProcess, (LPVOID)(baseAddress + offsetAddress), data.data(), moduleSize, &bytesRead) == 0) {
+        if (ReadProcessMemory(hProcess, (LPCVOID)(baseAddress + offsetAddress), data.data(), moduleSize, &bytesRead) == 0) {
             std::cout << "Error: " << GetLastError() << std::endl;
             std::cout << "Failed to read process memory" << std::endl;
             return 0;
@@ -99,8 +99,7 @@ static intptr_t AOBScan(int pid, const char* moduleName, intptr_t processAddress
         while (true) {
             // Search for the pattern..
             auto ret = std::search(scanStart, data.end(), pattern.begin(), pattern.end(),
-                [&](unsigned char curr, std::pair<unsigned char, bool> currPattern)
-            {
+                [&](unsigned char curr, std::pair<unsigned char, bool> currPattern) {
                 return (!currPattern.second) || curr == currPattern.first;
             });
 
@@ -126,6 +125,65 @@ static intptr_t AOBScan(int pid, const char* moduleName, intptr_t processAddress
     return 0;
 }
 
+/*
+When reading, just read memory
+When writing, VirtualProtectEx, then write,
+    Then restore old Protections
+*/
+/**
+ * @brief           Reads n Bytes from a Process
+ *
+ * @param pid       Process ID of the Process
+ * @param address   Address to Read from
+ * @param n         Number of Bytes to Read
+ * 
+ * @return          Vector Containing the Bytes
+ */
+std::vector<unsigned char> readBytes(int pid, intptr_t address, int n) {
+    DWORD processID = (DWORD)pid;
+    HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, processID);
+
+    // Ensures that Elden Ring is running
+    if (!hProcess) {
+        std::cout << "Failed to open process" << std::endl;
+        return std::vector<unsigned char>();
+    }
+
+    unsigned char* buffer = new unsigned char[n];
+    SIZE_T bytesRead;
+
+    ReadProcessMemory(hProcess, (LPCVOID)(address), buffer, n, &bytesRead);
+
+    std::vector<unsigned char> ret(buffer, buffer + n);
+
+    delete buffer;
+    CloseHandle(hProcess);
+
+    return ret;
+}
+
+bool writeBytes(int pid, int offset, int n, const std::vector<unsigned char>& bytes) {return false;}
+
+//int readInteger(int pid, int offset) {}
+//bool writeInteger(int pid, int offset, const int num) {}
+
+//float readFloat(int pid, int offset) {}
+//bool writeFloat(int pid, int offset, const float num) {}
+
+//double readDouble(int pid, int offset) {}
+//bool writeDouble(int pid, int offset, const double num) {}
+
+//long readLong(int pid, int offset) {}
+//bool writeLong(int pid, int offset, const long num) {}
+
+//long long readLongLong(int pid, int offset) {}
+//bool writeLongLong(int pid, int offset, const long long num) {}
+
+//short readShort(int pid, int offset) {}
+//bool writeShort(int pid, int offset, const short num) {}
+
 PYBIND11_MODULE(AOBScanner, m) {
     m.def("AOBScan", &AOBScan);
+    m.def("readBytes", &readBytes);
+    m.def("writeBytes", &writeBytes);
 }
