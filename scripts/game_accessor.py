@@ -1,5 +1,5 @@
-import memory_access as mm
-from build import AOBScanner
+import scripts.memory_access as mm
+from scripts.build import AOBScanner
 import pymem
 import pymem.process
 import struct
