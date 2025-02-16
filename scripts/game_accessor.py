@@ -10,6 +10,12 @@ bases = {
     "FieldArea": {"aob":"48 8B 0D 00 00 00 00 48 00 00 00 44 0F B6 61 00 E8 00 00 00 00 48 63 87 00 00 00 00 48 00 00 00 48 85 C0", "mask": "xxx????x???xxxx?x????xxx????x???xxx", "offset": 3, "additional": 7},
 }
 
+# NoDead            world, localPLayer, 0, 190, 0, 119b, bit 0
+# NoDamage          dhfajkdhfkajhdfkjahdkjfhadkljfhakl   bit 1
+# InfiniteFP        jkahdsfkjhakjdfhakjdfhkajdhfkljahd   bit 2
+# InfiniteStamina   asdjkhfkjahdfkljahldjkfhlakjdfhkaj   bit 3
+# InfiniteGoods     world, 1e508, 0, 522                 bit 0
+
 player_addrs_loc = {
     "playerDead": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x1c5]},
     "playerHealth": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x0, 0x138]},
@@ -26,7 +32,20 @@ player_addrs_loc = {
     "playerCos": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x68, 0x54]},
     "playerSin": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x68, 0x5c]},
     "playerGravity": {"base" : "WorldChrMan", "offsets" : [0x10ef8, 0x0, 0x190, 0x68, 0x1d3]},
-    "cutsceneLoading": {"base" : "EventFlagMan", "offsets" : [0x28, 0x113]}, # may or may not need to prepend 0x0, != 0 means not controllable
+    "cutsceneLoading": {"base" : "EventFlagMan", "offsets" : [0x28, 0x113]}, # bit 7, true means cutscene
+    "loadingScreen2": {"base": "EventFlagMan", "offsets": [0x28, 0x15195B]}, # bit 3, false means loading
+    "healingFlask": {"base": "GameDataMan", "offsets": [0x8, 0x101]},
+    "FPFlask": {"base": "GameDataMan", "offsets": [0x8, 0x102]},
+    "leftItem": {"base": "GameDataMan", "offsets": [0x8, 0x399]},
+    "rightItem": {"base": "GameDataMan", "offsets": [0x8, 0x39C]},
+    "leftItem2": {"base": "GameDataMan", "offsets": [0x8, 0x3A0]},
+    "rightItem2": {"base": "GameDataMan", "offsets": [0x8, 0x3A4]},
+    "leftItem3": {"base": "GameDataMan", "offsets": [0x8, 0x3A8]},
+    "rightItem3": {"base": "GameDataMan", "offsets": [0x8, 0x3AC]},
+    "helmet": {"base": "GameDataMan", "offsets": [0x8, 0x3C8]},
+    "chest": {"base": "GameDataMan", "offsets": [0x8, 0x3CC]},
+    "arms": {"base": "GameDataMan", "offsets": [0x8, 0x3D0]},
+    "leggings": {"base": "GameDataMan", "offsets": [0x8, 0x3D4]}
 }
 
 enemy_addrs_loc = {
@@ -143,6 +162,40 @@ class GameAccessor:
     def get_player_animation(self) -> int:
         return AOBScanner.readInteger(self.__process_id, player_addrs_loc["playerAnimation"]["address"])
 
+    def get_player_heal_flask(self) -> int:
+        return AOBScanner.readInteger(self.__process_id, player_addrs_loc["healingFlask"]["address"])
+
+    def get_player_fp_flask(self) -> int:
+        return AOBScanner.readInteger(self.__process_id, player_addrs_loc["FPFlask"]["address"])
+
+    def get_left_equipment(self) -> list:
+        ret = [
+            AOBScanner.readInteger(self.__process_id, player_addrs_loc["leftItem"]["address"]),
+            AOBScanner.readInteger(self.__process_id, player_addrs_loc["leftItem2"]["address"]),
+            AOBScanner.readInteger(self.__process_id, player_addrs_loc["leftItem3"]["address"])
+        ]
+
+        return ret
+
+    def get_right_equipment(self) -> list:
+        ret = [
+            AOBScanner.readInteger(self.__process_id, player_addrs_loc["rightItem"]["address"]),
+            AOBScanner.readInteger(self.__process_id, player_addrs_loc["rightItem2"]["address"]),
+            AOBScanner.readInteger(self.__process_id, player_addrs_loc["rightItem3"]["address"])
+        ]
+
+        return ret
+
+    def get_armor(self) -> list:
+        ret = [
+            AOBScanner.readInteger(self.__process_id, player_addrs_loc["helmet"]["address"]),
+            AOBScanner.readInteger(self.__process_id, player_addrs_loc["chest"]["address"]),
+            AOBScanner.readInteger(self.__process_id, player_addrs_loc["arms"]["address"]),
+            AOBScanner.readInteger(self.__process_id, player_addrs_loc["leggings"]["address"])
+        ]
+
+        return ret
+
     def toggle_gravity(self) -> None:
         """
         Toggles gravity for the player, used for teleporting.
@@ -170,7 +223,10 @@ class GameAccessor:
         Returns:
             True if game is in cutscene/loading state, False otherwise (bool)
         """
-        return AOBScanner.readBytes(self.__process_id, player_addrs_loc["cutsceneLoading"]["address"], 1)
+        return (bin(AOBScanner.readBytes(self.__process_id, player_addrs_loc["loadingScreen2"]["address"], 1)[0]) == '0b0')
+
+    def cutscene_state(self):
+        return (bin(AOBScanner.readBytes(self.__process_id, player_addrs_loc["cutsceneLoading"]["address"], 1)[0])[2] == '1')
 
     def pause_game(self) -> None:
         """
@@ -269,7 +325,6 @@ class GameAccessor:
             id.append(AOBScanner.readInteger(self.__process_id, self.enemies[key]["ID"]))
         return id
 
-    # TODO: readBytes is a list not a real byte struct
     def get_global_id(self, integer: bool = False) -> list:
         id = []
         for key in self.enemies.keys():
@@ -301,7 +356,6 @@ class GameAccessor:
             coords.append([x, y, z])
         return coords
 
-    # TODO: readBytes is a list not a real byte struct
     def get_enemy_dead(self) -> list:
         dead = []
         for key in self.enemies.keys():

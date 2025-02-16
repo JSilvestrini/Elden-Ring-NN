@@ -20,6 +20,7 @@
     - TODO: Punish for Bad or non-optimal flask use
         - Track flask number (get max during init or restart call)
     - TODO: Adjust rewards for the following 3 training modes
+    - TODO: Reward for time alive rather than punish, gradually increase as boss health decreases
 
 - TODO: One-Hit Kill Mode
     - Model will die if hit to ensure defensive play
@@ -31,16 +32,6 @@
 
 - TODO: Full Mode
     - Basically what it is now
-
-- TODO: Memory dig through Elden Ring for cutscene flags
-    - TODO: Adjust environment accordingly
-    - TODO: Add in more Character information (even if not used by myself)
-        - armor and weapons equipped.
-
-- TODO: Create custom PyMem equivalent library
-    - Running into memory read errors when there should not be
-    - TODO: Remove memory_access.py, legacy file
-    - TODO: Convert all game access to the new memory access functions within AOBScanner
 
 - TODO: Multiple Observation Spaces, CNN and Ground Truth
 
