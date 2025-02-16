@@ -2,6 +2,7 @@
     - TODO: Make sure speedhack + .dll is credited to original author                               [ DONE ]
     - TODO: Make sure that AOBs are credited to Cheat Table Makers and FPS ER                       [ DONE ]
     - TODO: Delete old legacy files
+    - TODO: Add information about AOBScanner file and contents
 
 - TODO: Refactor Environment
 - TODO: Make boss walk backs more boss-specific

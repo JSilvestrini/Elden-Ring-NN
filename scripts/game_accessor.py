@@ -48,9 +48,7 @@ enemy_addrs_loc = {
 
 class GameAccessor:
     def __init__(self):
-        self.__process = pymem.Pymem("eldenring.exe")
-        self.__process_id = self.__process.process_id
-        self.__process_base = self.__process.base_address
+        self.__process_id = AOBScanner.getPID()
         self.__is_paused = False
         self.__gravity = True
         self.reset()
@@ -80,14 +78,14 @@ class GameAccessor:
         for key in bases.keys():
             pattern = [int(x, 16) for x in bases[key]["aob"].split(" ")]
             mask = bases[key]["mask"]
-            addr = AOBScanner.AOBScan(self.__process_id, 'eldenring.exe', self.__process_base, pattern, mask, 0, 0)
-            offset = mm.read_memory_int(self.__process, addr + bases[key]["offset"])
-            address = mm.read_memory(self.__process, addr + offset + bases[key]["additional"])
+            addr = AOBScanner.AOBScan(self.__process_id, 'eldenring.exe', pattern, mask, 0, 0)
+            offset = AOBScanner.readInteger(self.__process_id, addr + bases[key]["offset"])
+            address = AOBScanner.readLongLong(self.__process_id, addr + offset + bases[key]["additional"])
             bases[key]["address"] = address
 
         pattern = [int(x, 16) for x in "80 BB 28 01 00 00 00 0F 84".split()]
         mask = "xxxxxxxxx"
-        self.__physics_pointer = AOBScanner.AOBScan(self.__process_id, 'eldenring.exe', self.__process_base, pattern, mask, 0, 0)
+        self.__physics_pointer = AOBScanner.AOBScan(self.__process_id, 'eldenring.exe', pattern, mask, 0, 0)
 
     def find_player_addrs(self) -> None:
         """
@@ -104,7 +102,7 @@ class GameAccessor:
             offsets = player_addrs_loc[key]["offsets"]
             addr = bases[base_addr]["address"]
             for offset in range(len(offsets) - 1):
-                addr = mm.read_memory(self.__process, addr + offsets[offset])
+                addr = AOBScanner.readLongLong(self.__process_id, addr + offsets[offset])
             player_addrs_loc[key]["address"] = addr + offsets[-1]
 
     def player_in_roundtable(self) -> bool:

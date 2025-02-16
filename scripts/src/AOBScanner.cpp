@@ -8,22 +8,38 @@
 #include <psapi.h>
 #include <debugapi.h>
 
+int getPID() {
+    int pid = -1;
+    PROCESSENTRY32 enter;
+    enter.dwSize = sizeof(PROCESSENTRY32);
+    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+
+    if (Process32First(snapshot, &enter)) {
+        while (Process32Next(snapshot, &enter)) {
+            if (_stricmp(enter.szExeFile, "eldenring.exe") == 0) {
+                pid = enter.th32ProcessID;
+            }
+        }
+    }
+
+    return pid;
+}
+
 /**
- * @brief               Scans a given chunk of data for the given pattern and mask.
+ * @brief                   Scans a given chunk of data for the given pattern and mask.
  *
- * @param data          The data to scan within for the given pattern.
- * @param baseAddress   The base address of where the scan data is from.
- * @param lpPattern     The pattern to scan for.
- * @param pszMask       The mask to compare against for wildcards.
- * @param offset        The offset to add to the pointer.
- * @param resultUsage   The result offset to use when locating signatures that match multiple functions.
+ * @param pid               PID of process
+ * @param moduleName        Name of the module we are looking for
+ * @param processAddress    The base address of where the scan data is from.
+ * @param lpPattern         The pattern to scan for.
+ * @param pszMask           The mask to compare against for wildcards.
+ * @param offset            The offset to add to the pointer.
+ * @param resultUsage       The result offset to use when locating signatures that match multiple functions.
  *
- * @return              Pointer of the pattern found, 0 otherwise.
+ * @return                  Pointer of the pattern found, 0 otherwise.
  */
-static intptr_t AOBScan(int pid, const char* moduleName, intptr_t processAddress, const std::vector<uint8_t>& lpPattern, const char* pszMask, intptr_t offset, intptr_t resultUsage) {
+static intptr_t AOBScan(int pid, const char* moduleName, const std::vector<uint8_t>& lpPattern, const char* pszMask, intptr_t offset, intptr_t resultUsage) {
     DWORD processID = (DWORD)pid;
-    DWORD64 baseAddress = (DWORD64)processAddress;
-    intptr_t offsetAddress = processAddress - baseAddress;
     HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, false, processID);
 
     // Ensures that Elden Ring is running
@@ -73,13 +89,13 @@ static intptr_t AOBScan(int pid, const char* moduleName, intptr_t processAddress
         SIZE_T bytesRead = 0;
         DWORD oldProtect;
 
-        if (VirtualProtectEx(hProcess, (LPVOID)(baseAddress + offsetAddress), moduleSize, PAGE_EXECUTE_READWRITE, &oldProtect) == 0) {
+        if (VirtualProtectEx(hProcess, (LPVOID)(moduleBaseAddress), moduleSize, PAGE_EXECUTE_READWRITE, &oldProtect) == 0) {
             std::cout << "Error: " << GetLastError() << std::endl;
             std::cout << "Failed to protect memory" << std::endl;
             return 0;
         }
 
-        if (ReadProcessMemory(hProcess, (LPCVOID)(baseAddress + offsetAddress), data.data(), moduleSize, &bytesRead) == 0) {
+        if (ReadProcessMemory(hProcess, (LPCVOID)(moduleBaseAddress), data.data(), moduleSize, &bytesRead) == 0) {
             std::cout << "Error: " << GetLastError() << std::endl;
             std::cout << "Failed to read process memory" << std::endl;
             return 0;
@@ -107,9 +123,9 @@ static intptr_t AOBScan(int pid, const char* moduleName, intptr_t processAddress
             if (ret != data.end()) {
                 // If we hit the usage count, return the result..
                 if (resultCnt == resultUsage || resultUsage == 0) {
-                    VirtualProtectEx(hProcess, (LPVOID)(baseAddress + offsetAddress), moduleSize, oldProtect, &oldProtect);
+                    VirtualProtectEx(hProcess, (LPVOID)(moduleBaseAddress), moduleSize, oldProtect, &oldProtect);
                     CloseHandle(hProcess);
-                    return (std::distance(data.begin(), ret) + processAddress) + offset;
+                    return (std::distance(data.begin(), ret) + moduleBaseAddress) + offset;
                 }
 
                 // Increment the found count and scan again..
@@ -125,11 +141,6 @@ static intptr_t AOBScan(int pid, const char* moduleName, intptr_t processAddress
     return 0;
 }
 
-/*
-When reading, just read memory
-When writing, VirtualProtectEx, then write,
-    Then restore old Protections
-*/
 /**
  * @brief           Reads n Bytes from a Process
  *
@@ -324,4 +335,5 @@ PYBIND11_MODULE(AOBScanner, m) {
     m.def("writeLongLong", &writeLongLong);
     m.def("readShort", &readShort);
     m.def("writeShort", &writeShort);
+    m.def("getPID", &getPID);
 }
