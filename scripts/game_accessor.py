@@ -1,7 +1,4 @@
-import scripts.memory_access as mm
 from scripts.build import AOBScanner
-import pymem
-import pymem.process
 import struct
 
 bases = {
@@ -106,7 +103,7 @@ class GameAccessor:
             player_addrs_loc[key]["address"] = addr + offsets[-1]
 
     def player_in_roundtable(self) -> bool:
-        return (mm.read_memory_int(self.__process, bases["FieldArea"]["address"] + 0xE4) == 11100)
+        return (AOBScanner.readInteger(self.__process_id, bases["FieldArea"]["address"] + 0xE4) == 11100)
 
     def get_player_dead(self) -> bool:
         return self.get_player_health() <= 0
@@ -115,36 +112,36 @@ class GameAccessor:
         return AOBScanner.readInteger(self.__process_id, player_addrs_loc["playerHealth"]["address"])
 
     def get_player_max_health(self) -> int:
-        return mm.read_memory_int(self.__process, player_addrs_loc["playerMaxHealth"]["address"])
+        return AOBScanner.readInteger(self.__process_id, player_addrs_loc["playerMaxHealth"]["address"])
 
     def kill_player(self) -> None:
         AOBScanner.writeInteger(self.__process_id, player_addrs_loc["playerHealth"]["address"], 0)
 
     def get_player_fp(self) -> int:
-        return mm.read_memory_int(self.__process, player_addrs_loc["playerFP"]["address"])
+        return AOBScanner.readInteger(self.__process_id, player_addrs_loc["playerFP"]["address"])
 
     def get_player_max_fp(self) -> int:
-        return mm.read_memory_int(self.__process, player_addrs_loc["playerMaxFP"]["address"])
+        return AOBScanner.readInteger(self.__process_id, player_addrs_loc["playerMaxFP"]["address"])
 
     def get_player_stamina(self) -> int:
-        return mm.read_memory_int(self.__process, player_addrs_loc["playerStamina"]["address"])
+        return AOBScanner.readInteger(self.__process_id, player_addrs_loc["playerStamina"]["address"])
 
     def get_player_max_stamina(self) -> int:
-        return mm.read_memory_int(self.__process, player_addrs_loc["playerMaxStamina"]["address"])
+        return AOBScanner.readInteger(self.__process_id, player_addrs_loc["playerMaxStamina"]["address"])
 
     def get_player_coords(self) -> tuple:
-        x = mm.read_memory_float(self.__process, player_addrs_loc["playerX"]["address"])
-        y = mm.read_memory_float(self.__process, player_addrs_loc["playerY"]["address"])
-        z = mm.read_memory_float(self.__process, player_addrs_loc["playerZ"]["address"])
+        x = AOBScanner.readFloat(self.__process_id, player_addrs_loc["playerX"]["address"])
+        y = AOBScanner.readFloat(self.__process_id, player_addrs_loc["playerY"]["address"])
+        z = AOBScanner.readFloat(self.__process_id, player_addrs_loc["playerZ"]["address"])
         return (x, y, z)
 
     def get_player_rotation(self) -> tuple:
-        cos = mm.read_memory_float(self.__process, player_addrs_loc["playerCos"]["address"])
-        sin = mm.read_memory_float(self.__process, player_addrs_loc["playerSin"]["address"])
+        cos = AOBScanner.readFloat(self.__process_id, player_addrs_loc["playerCos"]["address"])
+        sin = AOBScanner.readFloat(self.__process_id, player_addrs_loc["playerSin"]["address"])
         return (cos, sin)
 
     def get_player_animation(self) -> int:
-        return mm.read_memory_int(self.__process, player_addrs_loc["playerAnimation"]["address"])
+        return AOBScanner.readInteger(self.__process_id, player_addrs_loc["playerAnimation"]["address"])
 
     def toggle_gravity(self) -> None:
         """
@@ -157,10 +154,10 @@ class GameAccessor:
             None
         """
         if self.__gravity:
-            mm.write_memory_int(self.__process, player_addrs_loc["playerGravity"]["address"], 1)
+            AOBScanner.writeInteger(self.__process_id, player_addrs_loc["playerGravity"]["address"], 1)
             self.__gravity = False
         else:
-            mm.write_memory_int(self.__process, player_addrs_loc["playerGravity"]["address"], 0)
+            AOBScanner.writeInteger(self.__process_id, player_addrs_loc["playerGravity"]["address"], 0)
             self.__gravity = True
 
     def loading_state(self):
@@ -197,22 +194,22 @@ class GameAccessor:
         offsets =  [0x10ef8, 0x0, 0x178, 0x8]
         addr = bases["WorldChrMan"]["address"]
         for offset in offsets:
-            addr = mm.read_memory(self.__process, addr + offset)
+            addr = AOBScanner.readLongLong(self.__process_id, addr + offset)
 
         temp = addr
         try:
             for i in range(0, 15):
                 for _ in range(0, i):
-                    temp = mm.read_memory(self.__process, temp + 0x30)
-                if mm.read_memory_int(self.__process, temp + 0x8) == 26:
+                    temp = AOBScanner.readLongLong(self.__process_id, temp + 0x30)
+                if AOBScanner.readInteger(self.__process_id, temp + 0x8) == 26:
                     return True
         except:
             return False
 
     def set_animation_speed(self, speed: float) -> None:
-        mm.write_memory_float(self.__process, player_addrs_loc["playerAnimationSpeed"]["address"], speed)
+        AOBScanner.writeFloat(self.__process_id, player_addrs_loc["playerAnimationSpeed"]["address"], speed)
         for e in self.enemies:
-            mm.write_memory_float(self.__process, self.enemies[e]["animationSpeed"], speed)
+            AOBScanner.writeFloat(self.__process_id, self.enemies[e]["animationSpeed"], speed)
 
     def find_enemies(self, ids) -> None:
         #print(f"FINDING ENEMIES: {ids}")
@@ -220,20 +217,20 @@ class GameAccessor:
 
         pattern = [int(x, 16) for x in bases["WorldChrManAlt"]["aob"].split(" ")]
         mask = bases["WorldChrManAlt"]["mask"]
-        addr = AOBScanner.AOBScan(self.__process_id, 'eldenring.exe', self.__process_base, pattern, mask, 0, 0)
-        offset = mm.read_memory_int(self.__process, addr + bases["WorldChrManAlt"]["offset"])
-        address = mm.read_memory(self.__process, addr + offset + bases["WorldChrManAlt"]["additional"])
+        addr = AOBScanner.AOBScan(self.__process_id, 'eldenring.exe', pattern, mask, 0, 0)
+        offset = AOBScanner.readInteger(self.__process_id, addr + bases["WorldChrManAlt"]["offset"])
+        address = AOBScanner.readLongLong(self.__process_id, addr + offset + bases["WorldChrManAlt"]["additional"])
         bases["WorldChrManAlt"]["address"] = address
 
         p = bases["WorldChrManAlt"]["address"]
-        begin = mm.read_memory(self.__process, p + 0x1f1b8)
-        end = mm.read_memory(self.__process, p + 0x1f1c0)
+        begin = AOBScanner.readLongLong(self.__process_id, p + 0x1f1b8)
+        end = AOBScanner.readLongLong(self.__process_id, p + 0x1f1c0)
         characters = (end - begin) // 8
 
         for i in range(characters):
             #print(f"Scanning Character {i}")
-            addr = mm.read_memory(self.__process, begin + i * 8)
-            tb = mm.read_memory_int(self.__process, addr + 0x60)
+            addr = AOBScanner.readLongLong(self.__process_id, begin + i * 8)
+            tb = AOBScanner.readInteger(self.__process_id, addr + 0x60)
 
             #print(f"Found GID: {hex(gid)}")
             if tb in ids:
@@ -250,32 +247,33 @@ class GameAccessor:
             offsets = enemy_addrs_loc[key]["offsets"]
             addr = base
             for offset in range(len(offsets) - 1):
-                addr = mm.read_memory(self.__process, addr + offsets[offset])
+                addr = AOBScanner.readLongLong(self.__process_id, addr + offsets[offset])
             self.enemies[base][key] = addr + offsets[-1]
             #print(f"Found {key}: {hex(addr + offsets[-1])}")
 
     def get_enemy_health(self) -> list:
         health = []
         for key in self.enemies.keys():
-            health.append(mm.read_memory_int(self.__process, self.enemies[key]["health"]))
+            health.append(AOBScanner.readInteger(self.__process_id, self.enemies[key]["health"]))
         return health
 
     def get_enemy_max_health(self) -> list:
         health = []
         for key in self.enemies.keys():
-            health.append(mm.read_memory_int(self.__process, self.enemies[key]["maxHealth"]))
+            health.append(AOBScanner.readInteger(self.__process_id, self.enemies[key]["maxHealth"]))
         return health
 
     def get_enemy_id(self) -> list:
         id = []
         for key in self.enemies.keys():
-            id.append(mm.read_memory_int(self.__process, self.enemies[key]["ID"]))
+            id.append(AOBScanner.readInteger(self.__process_id, self.enemies[key]["ID"]))
         return id
 
+    # TODO: readBytes is a list not a real byte struct
     def get_global_id(self, integer: bool = False) -> list:
         id = []
         for key in self.enemies.keys():
-            tb = mm.read_memory_bytes(self.__process, self.enemies[key]["globalID"], 2)
+            tb = bytes(AOBScanner.readBytes(self.__process_id, self.enemies[key]["globalID"], 2))
             if integer:
                 id.append(int(struct.unpack('>H', tb)[0].to_bytes(2, byteorder='little').hex(), 16))
             else:
@@ -285,28 +283,29 @@ class GameAccessor:
     def get_param_id(self) -> list:
         id = []
         for key in self.enemies.keys():
-            id.append(mm.read_memory_int(self.__process, self.enemies[key]["paramID"]))
+            id.append(AOBScanner.readInteger(self.__process_id, self.enemies[key]["paramID"]))
         return id
 
     def get_enemy_animation(self) -> list:
         animation = []
         for key in self.enemies.keys():
-            animation.append(mm.read_memory_int(self.__process, self.enemies[key]["animation"]))
+            animation.append(AOBScanner.readInteger(self.__process_id, self.enemies[key]["animation"]))
         return animation
 
     def get_enemy_coords(self) -> list:
         coords = []
         for key in self.enemies.keys():
-            x = mm.read_memory_float(self.__process, self.enemies[key]["x"])
-            y = mm.read_memory_float(self.__process, self.enemies[key]["y"])
-            z = mm.read_memory_float(self.__process, self.enemies[key]["z"])
+            x = AOBScanner.readFloat(self.__process_id, self.enemies[key]["x"])
+            y = AOBScanner.readFloat(self.__process_id, self.enemies[key]["y"])
+            z = AOBScanner.readFloat(self.__process_id, self.enemies[key]["z"])
             coords.append([x, y, z])
         return coords
 
+    # TODO: readBytes is a list not a real byte struct
     def get_enemy_dead(self) -> list:
         dead = []
         for key in self.enemies.keys():
-            c = mm.read_memory_bytes(self.__process, self.enemies[key]["isDead"], 1, True)
+            c = AOBScanner.readBytes(self.__process_id, self.enemies[key]["isDead"], 1)[0]
             dead.append(c > 0)
         return dead
 
