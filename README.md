@@ -14,13 +14,13 @@ Once the environment is finished and the agent begins training, the repo will be
 -   [**Pre-Run Steps**](#pre-run-steps)
 -   [**How to Use**](#how-to-use)
 -   [**Documentation**](#documentation)
-    -   [**er_agent.py**](#er_agentpy)
+    -   [**AOBScanner**](#srcaobscannercpp)
+    -   [**database_helper.py**](#database_helperpy)
     -   [**er_environment.py**](#er_environmentpy)
-    -   [**er_model.py**](#er_modelpy)
+    -   [**er_helper.py**](#er_helperpy)
     -   [**game_access.py**](#game_accesspy)
-    -   [**logger.py**](#loggerpy)
-    -   [**memory_access.py**](#memory_accesspy)
-    -   [**webview.py**](#webviewpy)
+    -   [**speedhack.py**](#speedhackpy)
+    -   [**walk_back.py**](#walk_backpy)
 -   [**References**](#references)
 
 ## Dependencies
@@ -31,7 +31,6 @@ As a lazy developer, I do not have any virtual environments on my machine that c
 
 -   streamlit
 -   json
--   pymem
 -   dxcam
 -   pybind11
 -   stable_baselines3
@@ -78,6 +77,10 @@ You need at least version 3.10 of CMake to use the file that is included, but yo
 
 Most of the files included in this repo have documentation with information about the function, the arguments taken, and the return type. Below is the specific use case of the file and the reason that it was written.
 
+### /src/AOBScanner.cpp
+
+This was originally made to have a quick way to scan bytes within memory to mimic Cheat Engine AOB scanning. Since issues were arising with PyMem, this file now contains all reading and writing functions that are needed to access and modify memory.
+
 ### database_helper.py
 
 This file is used to read and write from the optional database in order to store data for later use.
@@ -93,10 +96,6 @@ This file contains some of the random functions that would be needed in multiple
 ### game_access.py
 
 This file is used heavily by the environment to retrieve information about the game state. This file relies on memory_access and communication through files with Cheat Engine. It finds pointers to values that are in Elden Ring's memory and stores those pointers so the environment can use the get functions to retrieve the values at those locations. It also has the ability to pause the game (please note that Elden Ring is normally not able to be paused) This is meant for slower hardware so the game can be paused during agent play to give time to choose an action (this is currently unimplemented).
-
-### memory_access.py
-
-This file was made to easily access pointers and memory addresses that were retrieved from Cheat Engine. This is mainly used inside of the **game_access.py** file to read information about the game state as well as edit information about the game state, like the player location, gravity toggle, and logic pause.
 
 ### speedhack.py
 
