@@ -114,13 +114,13 @@ class GameAccessor:
         return self.get_player_health() <= 0
 
     def get_player_health(self) -> int:
-        return mm.read_memory_int(self.__process, player_addrs_loc["playerHealth"]["address"])
+        return AOBScanner.readInteger(self.__process_id, player_addrs_loc["playerHealth"]["address"])
 
     def get_player_max_health(self) -> int:
         return mm.read_memory_int(self.__process, player_addrs_loc["playerMaxHealth"]["address"])
 
     def kill_player(self) -> None:
-        mm.write_memory_int(self.__process, player_addrs_loc["playerHealth"]["address"], 0)
+        AOBScanner.writeInteger(self.__process_id, player_addrs_loc["playerHealth"]["address"], 0)
 
     def get_player_fp(self) -> int:
         return mm.read_memory_int(self.__process, player_addrs_loc["playerFP"]["address"])
@@ -165,7 +165,7 @@ class GameAccessor:
             mm.write_memory_int(self.__process, player_addrs_loc["playerGravity"]["address"], 0)
             self.__gravity = True
 
-    def loading_state_CUSTOM(self):
+    def loading_state(self):
         """
         Reads the cutsceneLoading pointer and returns True if the game is in a cutscene/loading state
 
@@ -177,19 +177,7 @@ class GameAccessor:
         """
         return AOBScanner.readBytes(self.__process_id, player_addrs_loc["cutsceneLoading"]["address"], 1)
 
-    def loading_state(self):
-        """
-        Reads the cutsceneLoading pointer and returns True if the game is in a cutscene/loading state
-
-        Args:
-            None
-
-        Returns:
-            True if game is in cutscene/loading state, False otherwise (bool)
-        """
-        return mm.read_memory_bytes(self.__process, player_addrs_loc["cutsceneLoading"]["address"], 1, _asInt = True)
-
-    def pause_game_CUSTOM(self) -> None:
+    def pause_game(self) -> None:
         """
         Pauses and unpauses the game physics
 
@@ -204,24 +192,6 @@ class GameAccessor:
             AOBScanner.writeBytes(self.__process_id, self.__physics_pointer + 0x6, 1, [int('0', 16)])
         else:
             AOBScanner.writeBytes(self.__process_id, self.__physics_pointer + 0x6, 1, [int('1', 16)])
-
-        self.__is_paused = not self.__is_paused
-
-    def pause_game(self) -> None:
-        """
-        Pauses and unpauses the game physics
-
-        Args:
-            None
-
-        Returns:
-            None
-        """
-
-        if self.__is_paused:
-            mm.write_byte(self.__process, self.__physics_pointer + 0x6, b'\x00')
-        else:
-            mm.write_byte(self.__process, self.__physics_pointer + 0x6, b'\x01')
 
         self.__is_paused = not self.__is_paused
 

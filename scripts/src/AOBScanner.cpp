@@ -182,26 +182,146 @@ bool writeBytes(int pid, intptr_t address, int n, const std::vector<unsigned cha
     return bytesWritten == n;
 }
 
-//int readInteger(int pid, int address) {}
-//bool writeInteger(int pid, int address, const int num) {}
+int readInteger(int pid, intptr_t address) {
+    int ret = 0;
+    std::vector bytes = readBytes(pid, address, sizeof(int));
 
-//float readFloat(int pid, int address) {}
-//bool writeFloat(int pid, int address, const float num) {}
+    unsigned char buffer[sizeof(int)];
+    std::copy(bytes.begin(), bytes.end(), buffer);
+    memcpy(&ret, &buffer, sizeof(int));
 
-//double readDouble(int pid, int address) {}
-//bool writeDouble(int pid, int address, const double num) {}
+    return ret;
+}
 
-//long readLong(int pid, int address) {}
-//bool writeLong(int pid, int address, const long num) {}
+bool writeInteger(int pid, intptr_t address, const int num) {
+    int localNum = num;
+    unsigned char buffer[sizeof(int)];
+    memcpy(&buffer, &localNum, sizeof(int));
 
-//long long readLongLong(int pid, int address) {}
-//bool writeLongLong(int pid, int address, const long long num) {}
+    std::vector<unsigned char> ret(buffer, buffer + sizeof(int));
 
-//short readShort(int pid, int address) {}
-//bool writeShort(int pid, int address, const short num) {}
+    return writeBytes(pid, address, sizeof(int), ret);
+}
+
+float readFloat(int pid, intptr_t address) {
+    float ret = 0;
+    std::vector bytes = readBytes(pid, address, sizeof(float));
+
+    unsigned char buffer[sizeof(float)];
+    std::copy(bytes.begin(), bytes.end(), buffer);
+    memcpy(&ret, &buffer, sizeof(float));
+
+    return ret;
+}
+
+bool writeFloat(int pid, intptr_t address, const float num) {
+    float localNum = num;
+    unsigned char buffer[sizeof(float)];
+    memcpy(&buffer, &localNum, sizeof(float));
+
+    std::vector<unsigned char> ret(buffer, buffer + sizeof(float));
+
+    return writeBytes(pid, address, sizeof(float), ret);
+}
+
+double readDouble(int pid, intptr_t address) {
+    double ret = 0;
+    std::vector bytes = readBytes(pid, address, sizeof(double));
+
+    unsigned char buffer[sizeof(double)];
+    std::copy(bytes.begin(), bytes.end(), buffer);
+    memcpy(&ret, &buffer, sizeof(double));
+
+    return ret;
+}
+
+bool writeDouble(int pid, intptr_t address, const double num) {
+    double localNum = num;
+    unsigned char buffer[sizeof(double)];
+    memcpy(&buffer, &localNum, sizeof(double));
+
+    std::vector<unsigned char> ret(buffer, buffer + sizeof(double));
+
+    return writeBytes(pid, address, sizeof(double), ret);
+}
+
+long readLong(int pid, intptr_t address) {
+    long ret = 0;
+    std::vector bytes = readBytes(pid, address, sizeof(long));
+
+    unsigned char buffer[sizeof(long)];
+    std::copy(bytes.begin(), bytes.end(), buffer);
+    memcpy(&ret, &buffer, sizeof(long));
+
+    return ret;
+}
+
+bool writeLong(int pid, intptr_t address, const long num) {
+    long localNum = num;
+    unsigned char buffer[sizeof(long)];
+    memcpy(&buffer, &localNum, sizeof(long));
+
+    std::vector<unsigned char> ret(buffer, buffer + sizeof(long));
+
+    return writeBytes(pid, address, sizeof(int), ret);
+}
+
+long long readLongLong(int pid, intptr_t address) {
+    long long ret = 0;
+    std::vector bytes = readBytes(pid, address, sizeof(long long));
+
+    unsigned char buffer[sizeof(long long)];
+    std::copy(bytes.begin(), bytes.end(), buffer);
+    memcpy(&ret, &buffer, sizeof(long long));
+
+    return ret;
+}
+
+bool writeLongLong(int pid, intptr_t address, const long long num) {
+    long long localNum = num;
+    unsigned char buffer[sizeof(long long)];
+    memcpy(&buffer, &localNum, sizeof(long long));
+
+    std::vector<unsigned char> ret(buffer, buffer + sizeof(long long));
+
+    return writeBytes(pid, address, sizeof(long long), ret);
+}
+
+short readShort(int pid, intptr_t address) {
+    short ret = 0;
+    std::vector bytes = readBytes(pid, address, sizeof(short));
+
+    unsigned char buffer[sizeof(short)];
+    std::copy(bytes.begin(), bytes.end(), buffer);
+    memcpy(&ret, &buffer, sizeof(short));
+
+    return ret;
+}
+
+bool writeShort(int pid, intptr_t address, const short num) {
+    short localNum = num;
+    unsigned char buffer[sizeof(short)];
+    memcpy(&buffer, &localNum, sizeof(short));
+
+    std::vector<unsigned char> ret(buffer, buffer + sizeof(short));
+
+    return writeBytes(pid, address, sizeof(short), ret);
+}
 
 PYBIND11_MODULE(AOBScanner, m) {
     m.def("AOBScan", &AOBScan);
     m.def("readBytes", &readBytes);
     m.def("writeBytes", &writeBytes);
+    m.def("readInteger", &readInteger);
+    m.def("writeInteger", &writeInteger);
+    m.def("readFloat", &readFloat);
+    m.def("writeFloat", &writeFloat);
+    m.def("readDouble", &readDouble);
+    m.def("writeDouble", &writeDouble);
+    m.def("readLong", &readLong);
+    m.def("writeLong", &writeLong);
+    m.def("readLongLong", &readLongLong);
+    m.def("writeLongLong", &writeLongLong);
+    m.def("readShort", &readShort);
+    m.def("writeShort", &writeShort);
 }

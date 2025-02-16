@@ -39,6 +39,7 @@
 - TODO: Create custom PyMem equivalent library
     - Running into memory read errors when there should not be
     - TODO: Remove memory_access.py, legacy file
+    - TODO: Convert all game access to the new memory access functions within AOBScanner
 
 - TODO: Multiple Observation Spaces, CNN and Ground Truth
 
