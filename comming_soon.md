@@ -5,6 +5,7 @@
     - TODO: Add information about AOBScanner file and contents
 
 - TODO: Refactor Environment
+- TODO: Make new file and copy over incrementally
 - TODO: Make boss walk backs more boss-specific
     - Could reduce training time by removing excess loading screens
     - TODO: Remove walk_back.py, legacy file

@@ -3,76 +3,13 @@ from scripts import er_helper
 from scripts import database_helper
 from scripts import walk_back
 from scripts import speedhack
-import sqlite3 # Delete this
 import dxcam
 import time
 import numpy as np
 import cv2
 import gymnasium
-import random # Delete this
 
-'''
-forward             - w
-left                - a
-back                - s
-right               - d
-jump                - f
-dodge               - space
-change target up    - 1
-change target down  - 2
-change target left  - 3
-change target right - 4
-switch spell        - up
-switch item         - down
-attack right        - m
-strong attack       - l
-block               - k
-ash of war          - n
-use item            - r
-crouch              - x
-'''
-
-simple_action_space = {
-    0: ['w'],           # forward
-    1: ['a'],           # left
-    2: ['s'],           # back
-    3: ['d'],           # right
-    4: ['w', 'space'],  # forward roll
-    5: ['a', 'space'],  # left roll
-    6: ['s', 'space'],  # back roll
-    7: ['d', 'space'],  # right roll
-    8: ['f'],           # jump
-    9: ['3'],           # switch target left
-    10: ['4'],          # switch target right
-    11: ['down'],       # switch item
-    12: ['m'],          # attack
-    13: ['l'],          # strong attack
-    14: ['k'],          # block
-    15: ['n'],          # use skill
-    16: ['r'],          # use item
-}
-
-simple_no_switch_action_space = {
-    0: ['w'],           # forward
-    1: ['a'],           # left
-    2: ['s'],           # back
-    3: ['d'],           # right
-    4: ['w', 'space'],  # forward roll
-    5: ['a', 'space'],  # left roll
-    6: ['s', 'space'],  # back roll
-    7: ['d', 'space'],  # right roll
-    8: ['f'],           # jump
-    9: ['3'],           # switch target left
-    10: ['4'],          # switch target right
-    11: ['m'],          # attack
-    12: ['l'],          # strong attack
-    13: ['k'],          # block
-    14: ['n'],          # use skill
-    15: ['r'],          # use item
-}
-
-'''Adds more movement options for jumping'''
-mid_action_space = {
+movement_only_space = {
     0: ['w'],           # forward
     1: ['a'],           # left
     2: ['s'],           # back
@@ -87,19 +24,27 @@ mid_action_space = {
     11: ['a', 'f'],     # left jump
     12: ['s', 'f'],     # back jump
     13: ['d', 'f'],     # right jump
-    14: ['w', 'f', 'l'],# forward jump + strong attack
-    15: ['x'],          # crouch
-    16: ['3'],          # switch target left
-    17: ['4'],          # switch target right
-    18: ['down'],       # switch item
-    19: ['m'],          # attack
-    20: ['l'],          # strong attack
-    21: ['k'],          # block
-    22: ['n'],          # use skill
-    23: ['r'],          # use item
 }
 
-mid_no_switch_action_space = {
+movement_and_heal_space = {
+    0: ['w'],           # forward
+    1: ['a'],           # left
+    2: ['s'],           # back
+    3: ['d'],           # right
+    4: ['w', 'space'],  # forward roll
+    5: ['a', 'space'],  # left roll
+    6: ['s', 'space'],  # back roll
+    7: ['d', 'space'],  # right roll
+    8: ['space'],       # dodge
+    9: ['f'],           # jump
+    10: ['w', 'f'],     # forward jump
+    11: ['a', 'f'],     # left jump
+    12: ['s', 'f'],     # back jump
+    13: ['d', 'f'],     # right jump
+    16: ['r'],          # use item
+}
+
+all__action_space = {
     0: ['w'],           # forward
     1: ['a'],           # left
     2: ['s'],           # back
@@ -125,96 +70,25 @@ mid_no_switch_action_space = {
     22: ['r'],          # use item
 }
 
-'''Adds lock on and some movement when attacking'''
-complex_action_space = {
-    0: ['w'],           # forward
-    1: ['a'],           # left
-    2: ['s'],           # back
-    3: ['d'],           # right
-    4: ['w', 'space'],  # forward roll
-    5: ['a', 'space'],  # left roll
-    6: ['s', 'space'],  # back roll
-    7: ['d', 'space'],  # right roll
-    8: ['space'],       # dodge
-    9: ['f'],           # jump
-    10: ['w', 'f'],     # forward jump
-    11: ['a', 'f'],     # left jump
-    12: ['s', 'f'],     # back jump
-    13: ['d', 'f'],     # right jump
-    14: ['w', 'f', 'l'],# forward jump + strong attack
-    15: ['x'],          # crouch
-    16: ['q'],          # lock-on
-    17: ['3'],          # switch target left
-    18: ['4'],          # switch target right
-    19: ['down'],       # switch item
-    20: ['m'],          # attack
-    21: ['w', 'm'],     # forward attack
-    22: ['l'],          # strong attack
-    23: ['w', 'l'],     # forward strong attack
-    24: ['k'],          # block
-    25: ['n'],          # use skill
-    26: ['r'],          # use item
-}
-
-full_walk_backs = {
-    0: walk_back.morgott,
-    1: walk_back.leonine_misbegotten,
-    2: walk_back.red_wolf,
-    3: walk_back.elemer,
-    4: walk_back.mimic_tear,
-    5: walk_back.misbegotten_crucible_knight,
-    6: walk_back.mohg,
-    7: walk_back.grafted_scion,
-    8: walk_back.black_knife_assassin,
-    9: walk_back.burial_watchdog,
-    10: walk_back.grave_warden_duelist,
-    11: walk_back.cemetery_shade,
-    12: walk_back.burial_watchdog_duo,
-    13: walk_back.crucible_knight_duo,
-    14: walk_back.naill,
-    15: walk_back.soldier_godrick,
-    16: walk_back.beastman,
-    17: walk_back.golem,
-    18: walk_back.misbegotten_crusader,
-    19: walk_back.troll,
-    20: walk_back.scaly_misbegotten,
-    21: walk_back.crystalian,
-    22: walk_back.crystalian_duo,
-    23: walk_back.onyx_lord,
-    24: walk_back.dancing_lion,
-    25: walk_back.rellana,
-    26: walk_back.romina,
-}
-
-walk_backs = {
-    0: walk_back.soldier_godrick,
-    1: walk_back.beastman,
-    2: walk_back.scaly_misbegotten,
-    3: walk_back.leonine_misbegotten,
-    #4: walk_back.black_knife_assassin,
-    4: walk_back.burial_watchdog,
-    5: walk_back.grave_warden_duelist,
-    6: walk_back.margit,
-    7: walk_back.crystalian,
-    8: walk_back.crystalian_duo
-}
-
-action_spaces = [simple_no_switch_action_space, simple_action_space, mid_no_switch_action_space, mid_action_space, complex_action_space]
+action_spaces = [movement_only_space, movement_and_heal_space, all__action_space]
 
 class EldenRing(gymnasium.Env):
-    def __init__(self, action_space = 2, database_writing = False, n_steps = 1024):
+    def __init__(self, action_space = 0, database_writing = False, n_steps = 1024):
         self.__database_writing = database_writing
         self.__game = GameAccessor()
         self.__camera = dxcam.create()
         left, top, right, bottom = er_helper.client_window_size()
         # This small offset is for a 4k monitor, might be different for others
         self.__region = (12 + left, 52 + top, 12 + right, 52 + bottom)
+
         self.obs_type = "rgb"
         self.action_space = gymnasium.spaces.Discrete(len(action_spaces[action_space]))
         self.observation_space = gymnasium.spaces.Box(low=0, high=1, shape=((self.__region[3]- self.__region[1]), (self.__region[2] - self.__region[0]), 3), dtype=np.uint8)
 
         # can switch action spaces and reward function
-        self.key_action_space = action_spaces[action_space]
+        self.train_mode = action_space
+        # hardcore complex action space for now
+        self.key_action_space = action_spaces[2]
         self.reward_function = self.complex_reward
         self.games = 0
 
@@ -237,34 +111,42 @@ class EldenRing(gymnasium.Env):
 
         self.__game.reset()
 
+    def kill_player(self):
+        self.__game.kill_player()
+        self.__game.set_animation_speed(8)
+        time.sleep(9)
+        self.__game.set_animation_speed(1)
+
+        # if respawn stake, choose round table
+        # maybe make it not go to round table if choice
+        if self.marika:
+            er_helper.key_press('right', 0.08)
+            er_helper.key_press('e', 0.08)
+
     def begin_boss(self):
         # try and start the boss,
         # if too much time has ellapsed since
         # 'walkback' and the 'enemy' being missing,
         # kill player, start again
 
-        boss_num = int(str(self.games)[0])
-        func = walk_backs[(boss_num - 1)]
-        self.enemy_id = func()
-        #time.sleep(15 / self.speed)
+        self.enemy_id = walk_back.margit()
         self.__game.reset() # Reset when entering new area, just incase
 
         time.sleep(2)
 
-    def kill_player(self):
-        self.__game.kill_player()
-        if self.marika:
-            time.sleep(8)
-            er_helper.key_press('right', 0.08)
-            er_helper.key_press('e', 0.08)
-        time.sleep(10)
-
     def reset(self, seed=0, options=0) -> None:
         self.win = False
+
         if not self.__game.player_in_roundtable():
-        #    self.__game.kill_player()
-            time.sleep(12)
-        time.sleep(4)
+            self.kill_player()
+
+        
+        while self.__game.loading_state():
+            time.sleep(0.1)
+
+        self.__game.set_animation_speed(8)
+        time.sleep(1)
+        self.__game.set_animation_speed(1)
 
         # after n games change the walkback function, maybe 1k then 10k then 100k
         self.reward = 0
@@ -272,12 +154,6 @@ class EldenRing(gymnasium.Env):
         self.games += 1
         print(f"RESET CALLED: GAME {self.games} STARTING...")
         er_helper.clean_keys()
-        #self.__game.reset() # Reset when entering new area
-
-        #if self.games > 0:
-        #    print(f"Actions per Second: {self.time_step / (self.end_time - self.begin_time)}")
-
-        #if self.__game.loading_state():
 
         while True:
             self.__game.clean()
@@ -310,7 +186,7 @@ class EldenRing(gymnasium.Env):
         self.reset_ground_truth()
 
         return self.state(), {}
-    
+
     def reset_ground_truth(self) -> None:
         self.begin_time = time.time()
         # used for rewards
@@ -329,6 +205,7 @@ class EldenRing(gymnasium.Env):
         self.boss_coordinates = self.__game.get_enemy_coords()
         self.player_animation = self.__game.get_player_animation()
         self.boss_animation = self.__game.get_enemy_animation()
+        self.player_current_flasks = self.__game.get_player_heal_flask()
 
         self.player_previous_health = self.player_current_health
         self.player_previous_stamina = self.player_current_stamina
@@ -338,6 +215,7 @@ class EldenRing(gymnasium.Env):
         self.boss_previous_coordinates = self.boss_coordinates
         self.player_previous_animation = self.player_animation
         self.boss_previous_animation = self.boss_animation
+        self.player_previous_flasks = self.player_current_flasks
 
     def perform_action(self, action) -> None:
         er_helper.press_combos(self.key_action_space[action])
@@ -364,6 +242,7 @@ class EldenRing(gymnasium.Env):
         self.boss_previous_coordinates = self.boss_coordinates
         self.player_previous_animation = self.player_animation
         self.boss_previous_animation = self.boss_animation
+        self.player_previous_flasks = self.player_current_flasks
 
         self.player_current_health = self.__game.get_player_health()
         self.player_current_stamina = self.__game.get_player_stamina()
@@ -373,20 +252,23 @@ class EldenRing(gymnasium.Env):
         self.player_animation = self.__game.get_player_animation()
         self.boss_coordinates = self.__game.get_enemy_coords()
         self.boss_animation = self.__game.get_enemy_animation()
+        self.player_current_flasks = self.__game.get_player_heal_flask()
 
-        if self.__database_writing:
-            if self.player_animation != self.player_previous_animation:
-                database_helper.write_to_database_animations({"Animation_ID": self.player_animation, "Run_Number": self.games, "Boss_ID": 0})
+        if not self.__database_writing:
+            return
 
-            for i in range(0, len(self.boss_animation)):
-                if self.boss_animation[i] != self.boss_previous_animation[i]:
-                    database_helper.write_to_database_animations({"Animation_ID": self.boss_animation[i], "Run_Number": self.games, "Boss_ID": self.enemy_id[i]})
+        if self.player_animation != self.player_previous_animation:
+            database_helper.write_to_database_animations({"Animation_ID": self.player_animation, "Run_Number": self.games, "Boss_ID": 0})
+
+        for i in range(0, len(self.boss_animation)):
+            if self.boss_animation[i] != self.boss_previous_animation[i]:
+                database_helper.write_to_database_animations({"Animation_ID": self.boss_animation[i], "Run_Number": self.games, "Boss_ID": self.enemy_id[i]})
 
     def state(self):
         return self.__screenshot
 
     def simple_reward(self) -> None:
-        self.reward = -1
+        self.reward = 1 * (self.time_step_run / 128)
 
         for i in range(0, len(self.__game.enemies)):
         # reward for dealing damage
@@ -397,7 +279,7 @@ class EldenRing(gymnasium.Env):
         # punish for taking damage
         if self.player_current_health < self.player_previous_health:
             self.take_damage_timer = time.time()
-            self.reward -= (3 + ((self.player_previous_health - self.player_current_health) / self.player_max_health))
+            self.reward -= (7 + ((self.player_previous_health - self.player_current_health) / self.player_max_health))
 
         if time.time() - self.deal_damage_timer > (12 / self.speed):
             self.reward -= (1 + (time.time() - self.deal_damage_timer - (12 / self.speed)) / 10)
@@ -409,6 +291,9 @@ class EldenRing(gymnasium.Env):
         if self.player_current_stamina < self.player_max_stamina * 0.25:
             self.reward -= (1 + ((self.player_max_stamina * 0.25 - self.player_current_stamina) / self.player_max_stamina))
 
+        if (self.player_current_flasks < self.player_previous_flasks) and (self.boss_current_health == self.boss_previous_health):
+            self.reward -= 5
+
         if self.player_current_health > self.player_previous_health:
             # reward for healing
             self.reward += (3 + ((self.player_current_health - self.player_previous_health) / self.player_max_health))
@@ -416,14 +301,21 @@ class EldenRing(gymnasium.Env):
             # punish if healing way too early, lvl 1 flask heals 250, so if missing ou
             # on more than 75 potential hp, punish
             # 175 is an arbitrary number in this case
-            if self.player_current_health - self.player_previous_health < 175:
+            health_diff = self.player_current_health - self.player_previous_health
+            if health_diff < 175:
                 self.reward -= (3 + (250 - (self.player_current_health - self.player_previous_health)) / 175)
 
         # reward if avoiding damage for more than 15 seconds
         if time.time() - self.take_damage_timer > (12 / self.speed):
             self.reward += (1 + (time.time() - self.take_damage_timer) / (12 / self.speed))
 
-    def done(self) -> bool:
+    def one_shot_done(self) -> bool:
+        return self.reg_done() or (self.player_current_health < self.player_max_health)
+
+    def range_done(self) -> bool:
+        return self.reg_done() or self.player_current_health < (self.player_max_health * .4)
+
+    def reg_done(self) -> bool:
         if self.__game.get_player_dead():
             self.reward -= 10
             return True
@@ -436,9 +328,7 @@ class EldenRing(gymnasium.Env):
         self.win = True
         return True
 
-    def step(self, action):
-        # arbitrary delay to ensure that only 7 or so actions are performed per second
-        time.sleep(0.10 / (self.speed * self.speed))
+    def cutscene_check(self) -> bool:
         # while in cut scene, wait, clean enemies, find enemies, need to update for phase 2 bosses
         # removed for now until workaround can be found
         # TODO:
@@ -463,13 +353,22 @@ class EldenRing(gymnasium.Env):
         #    print(self.__game.get_enemy_id())
         #    er_helper.clean_keys()
         #    er_helper.key_press('q', .1)
+        ...
+
+    def step(self, action):
+        # arbitrary delay to ensure that only 7 or so actions are performed per second
+        time.sleep(0.10 / (self.speed * self.speed))
+        self.cutscene_check()
 
         self.perform_action(action)
+
         if not (self.time_step_total % self.n_steps == 0 and self.time_step_total > 1):
             self.update()
+        
         self.screenshot()
         self.reward_function()
-        done = self.done()
+        done = ([self.one_shot_done(), self.range_done(), self.reg_done()][self.train_mode])
+
         truncated = False
 
         if self.time_step_total % self.n_steps == 0 and self.time_step_total > 1:
@@ -503,6 +402,7 @@ class EldenRing(gymnasium.Env):
 
         if done or truncated:
             er_helper.clean_keys()
+            self.kill_player()
             self.end_time = time.time()
 
             if self.__database_writing:
@@ -522,24 +422,18 @@ class EldenRing(gymnasium.Env):
             time.sleep(4)
 
             if not self.win:
+                self.__game.set_animation_speed(8)
+                time.sleep(9)
+                self.__game.set_animation_speed(1)
+
                 if self.marika:
-                    time.sleep(8)
                     er_helper.key_press('right', 0.1)
                     er_helper.key_press('e', 0.1)
-
-                state_begin = time.time()
-
-                while self.__game.get_player_animation() in [17002, 18002]:
-                    time.sleep(.2)
-                    if time.time() - state_begin > 15:
-                        # sometimes the animation is sticky
-                        break
-
-                time.sleep(2)
+                    time.sleep(9)
 
             # if player is in loading screen
             # if self.__game.loading_state():
-            time.sleep(15)
+            # time.sleep(15)
 
         self.time_step_run += 1
         self.time_step_total += 1
@@ -550,16 +444,4 @@ class EldenRing(gymnasium.Env):
         pass
 
 if __name__ == "__main__":
-    #er = EldenRing(database_writing=True)
-
-    #con = sqlite3.connect("elden_ring.db")
-    #cur = con.cursor()
-    #cur.execute("SELECT * FROM Detailed_Run_Info_Player;")
-    #print(cur.fetchone())
-    #con.close()
-
-    er = EldenRing(database_writing=False)
-    er.reset(seed = 0)
-
-    while True:
-        er.step(0)
+    pass

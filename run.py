@@ -35,7 +35,7 @@ class CallBack(BaseCallback):
 def train_ppo(n_train, database_writing):
     callback = CallBack(freq=20480, path=CHECKPOINT_DIR)
 
-    env = er_environment.EldenRing(action_space=1, database_writing=database_writing, n_steps=1024)
+    env = er_environment.EldenRing(action_space=0, database_writing=database_writing, n_steps=1024)
     #print(env.observation_space.shape)
     env = GrayScaleObservation(env, keep_dim=True)
     env = DummyVecEnv([lambda: env]) # maybe in the future make it so there can be multiple environments
